@@ -1,7 +1,8 @@
 pandas
 streamlit
-scikit-learn==1.3
+scikit-learn==1.4.1.post1
 gunicorn
 numpy
 matplotlib==3.7.1
 seaborn==0.13.1
+pycaret
