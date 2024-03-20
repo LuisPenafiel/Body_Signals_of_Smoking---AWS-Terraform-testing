@@ -69,7 +69,7 @@ def prediction():
         "1": "Smoking",
     }
     # Leer los datos
-    df = pd.read_csv("data/processed/total_data_c2.csv")
+    df = pd.read_csv("total_data_c2.csv")
     # Definir las variables numéricas
     num_variables = ['gender', 'Gtp', 'hemoglobin', 'height(cm)', 'triglyceride', 'waist(cm)', 'LDL', 'HDL',
                      'Cholesterol', 'ALT', 'fasting blood sugar', 'systolic', 'AST', 'relaxation', 'weight(kg)',
