@@ -5,22 +5,61 @@ from pickle import load
 import streamlit as st
 import numpy as np
 import pandas as pd
+from PIL import Image
 from sklearn.preprocessing import StandardScaler
 
 # Página de inicio
 def home():
-    st.title("Body-Signals-Smoking :no_smoking:")
-    st.subheader("Visualiza y analiza datos relacionados con el tabaquismo")
+    st.title("When Your Body Sends Smoke Signals")
+    st.subheader("Body Signals Smoking :no_smoking")
     st.write('''
-         Está demostrado científicamente que el cigarrillo/tabaco es perjudicial para la salud tanto de las personas fumadoras como las personas que se consideran fumadoras pasivas. Se ha demostrado que a consecuencia de fumar se producen una serie de enfermedades y trastornos en todo el cuerpo, algunas más conocidas que otras, pero que abarcan desde problemas cardiovasculares, pulmonares, influencia sobre la diabetes, riñones, hígado, piel como también afectan la vista, los oídos y la boca, entre otros. A través de distintas variables de salud (que podemos llamar marcadores) se puede detectar qué órganos están afectados o qué riesgo de enfermedades.
+         Scientifically, it is proven that cigarettes/tobacco are harmful to the health of both smokers and those who are considered passive smokers. Smoking has been shown to cause a range of diseases and disorders throughout the body, some more well-known than others. These include cardiovascular and pulmonary problems, influence on diabetes, kidneys, liver, skin, as well as affecting vision, hearing, and oral health, among others. Through various health variables (which we can call markers), it is possible to detect which organs are affected or at risk of disease.
 
-Usando un modelo de aprendizaje supervisado o "machine learning" se predice si una persona es fumadora o no a través de distintas señales que muestra el cuerpo.
+By utilizing a supervised learning model or "machine learning," it is possible to predict whether a person is a smoker or not based on various signals exhibited by the body.
          '''
          )
+    col1, _ = st.columns([2, 1])
+    with col1:
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/body.jpg"))
 
+# Página de gráficos informativos
+def data():
+    st.title("Here's an interesting fact:")
+    # # Image Gallery
+    st.header("Did you know that")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/Gender_smoking.png"), caption="Men smoke more than women")
+    with col2:
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/hemoglobine_gender.png"), caption="Higher levels of hemoglobin are associated with smoking")
+    with col3:
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/outliers.png"), caption="Outliers")
 # Página de predicción
 def prediction():
-    st.title("Prediction Page")
+    st.title("Body-Signals-Smoking :no_smoking:")
+    st.subheader("Introduce your data and analyze what your body signals reveal about smoking")
+    st.markdown("""
+        <style>
+            .main {
+                background-color: #F0F0F0;
+            }
+            .stButton>button {
+                color: white;
+                background-color: #4CAF50;
+                border: none;
+                padding: 14px 28px;
+                cursor: pointer;
+                border-radius: 8px;
+            }
+            .stButton>button:hover {
+                background-color: #45A049;
+            }
+            .highlight:hover {
+                background-color: #FFCCCB;
+                transition: background-color 0.5s ease;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
     # Cargar el modelo
     model = load(open("/workspaces/Final_Project_Body_Signals/models/random_forest_model_Default.pkl", "rb"))
@@ -56,7 +95,11 @@ def prediction():
         'Cholesterol': (300, 700),
         'LDL': (70, 300),
         'age': (0, 100),
-        'HDL': (20, 300)
+        'HDL': (20, 300),
+        'tartar': (0, 1),
+        'dental caries': (0, 1),
+        'hearing(left)': (1, 2),
+        'hearing(right)': (1, 2)
     }
     # Crear un DataFrame con nombres de columnas para el escalado
     df_scaled = pd.DataFrame(data=np.zeros((1, len(num_variables))), columns=num_variables)
@@ -65,31 +108,7 @@ def prediction():
     scaler = StandardScaler()
     scaler.fit(df[num_variables])
 
-    # Título de la aplicación
-    st.title("Body-Signals-Smoking :no_smoking:")
-    st.subheader("Visualiza y analiza datos relacionados con el tabaquismo")
-    st.markdown("""
-        <style>
-            .main {
-                background-color: #F0F0F0;
-            }
-            .stButton>button {
-                color: white;
-                background-color: #4CAF50;
-                border: none;
-                padding: 14px 28px;
-                cursor: pointer;
-                border-radius: 8px;
-            }
-            .stButton>button:hover {
-                background-color: #45A049;
-            }
-            .highlight:hover {
-                background-color: #FFCCCB;
-                transition: background-color 0.5s ease;
-            }
-        </style>
-    """, unsafe_allow_html=True)
+
 
     # Crear un selectbox para el género
     gender = st.selectbox("Gender", ["F", "M"])
@@ -113,16 +132,25 @@ def prediction():
     val17 = st.slider("Serum Creatinine", min_value=0.27, max_value=6.81, step=0.01)
     val18 = st.slider("Eyesight (Left)", min_value=0, max_value=2)
     val19 = st.slider("Eyesight (Right)", min_value=0, max_value=2)
-    val20 = st.slider("Tartar", min_value=0, max_value=1)
-    val21 = st.slider("Dental Caries", min_value=0, max_value=1)
-    val22 = st.slider("Urine Protein", min_value=0, max_value=1)
-    val23 = st.slider("Hearing (Left)", min_value=0, max_value=1)
-    val24 = st.slider("Hearing (Right)", min_value=0, max_value=1)
+    val20 = st.slider("Urine Protein", min_value=1, max_value=6)
+
+    # Crear un selectbox para la audición
+    hearing_left = st.selectbox("Hearing (Left)", ["Normal", "Difficulty"])
+    hearing_right = st.selectbox("Hearing (Right)", ["Normal", "Difficulty"])
+    tartar = st.selectbox("Tartar", ["No", "Yes"])
+    dental_caries = st.selectbox("Dental Caries", ["No", "Yes"])
 
     # Botón para realizar la predicción
     if st.button("Predict"):
         # Mapear el género a 0 o 1
         gender_value = 1 if gender == "M" else 0
+
+        # Mapear la audición a 1 o 2
+        hearing_left_value = 1 if hearing_left == "Normal" else 2
+        hearing_right_value = 1 if hearing_right == "Normal" else 2
+        tartar_value = 0 if tartar == "No" else 1
+        dental_caries_value = 0 if dental_caries == "No" else 1
+
         # Crear un DataFrame con los valores de los sliders
         data = {
             "gender": gender_value,
@@ -144,11 +172,11 @@ def prediction():
             "serum creatinine": val17,
             "eyesight(left)": val18,
             "eyesight(right)": val19,
-            "tartar": val20,
-            "dental caries": val21,
-            "Urine protein": val22,
-            "hearing(left)": val23,
-            "hearing(right)": val24
+            "tartar": tartar_value,
+            "dental caries": dental_caries_value,
+            "Urine protein": val20,
+            "hearing(left)": hearing_left_value,
+            "hearing(right)": hearing_right_value
         }
         # Crear un DataFrame a partir de los valores y escalarlos
         df_scaled = pd.DataFrame(data=[data])
@@ -160,15 +188,25 @@ def prediction():
 
 def data_visualization():
     st.title("Data Visualization Page")
-    # Tu código para la página de visualización de datos va aquí
+    # # Image Gallery
+    st.header("Galería de Imágenes")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/heatmap_correlación.png"), caption="Heatmap Correlation")
+    with col2:
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/Correlación.png"), caption="Correlation")
+    with col3:
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/outliers.png"), caption="Outliers")
 
 # Función principal para manejar la navegación entre páginas
 def main():
     st.sidebar.title("Menu")
-    selection = st.sidebar.radio("Go to", ["Home", "Prediction", "Data Visualization"])
+    selection = st.sidebar.radio("Go to", ["Home","Relevant Data", "Prediction", "Data Visualization"])
 
     if selection == "Home":
         home()
+    elif selection == "Relevant Data":
+        data()
     elif selection == "Prediction":
         prediction()
     elif selection == "Data Visualization":
@@ -176,6 +214,3 @@ def main():
 
 if __name__ == "__main__":
     main()
- 
-
-
