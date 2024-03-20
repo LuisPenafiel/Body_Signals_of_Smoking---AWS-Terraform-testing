@@ -20,7 +20,7 @@ By utilizing a supervised learning model or "machine learning," it is possible t
          )
     col1, _ = st.columns([2, 1])
     with col1:
-        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/body.jpg"))
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/src/data/imagenes/body.jpg"))
 
 # Página de gráficos informativos
 def data():
@@ -29,11 +29,11 @@ def data():
     st.header("Did you know that")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/Gender_smoking.png"), caption="Men smoke more than women")
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/src/data/imagenes/Gender_smoking.png"), caption="Men smoke more than women")
     with col2:
-        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/hemoglobine_gender.png"), caption="Higher levels of hemoglobin are associated with smoking")
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/src/data/imagenes/hemoglobine_gender.png"), caption="Higher levels of hemoglobin are associated with smoking")
     with col3:
-        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/outliers.png"), caption="Outliers")
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/src/data/imagenes/outliers.png"), caption="Outliers")
 # Página de predicción
 def prediction():
     st.title("Body-Signals-Smoking :no_smoking:")
@@ -62,14 +62,14 @@ def prediction():
     """, unsafe_allow_html=True)
 
     # Cargar el modelo
-    model = load(open("/workspaces/Final_Project_Body_Signals/models/random_forest_model_Default.pkl", "rb"))
+    model = load(open("/workspaces/Final_Project_Body_Signals/src/random_forest_model_Default.pkl", "rb"))
     # Clasificación de las etiquetas
     class_dict = {
         "0": "Non-Smoking",
         "1": "Smoking",
     }
     # Leer los datos
-    df = pd.read_csv("/workspaces/Final_Project_Body_Signals/data/processed/total_data_c2.csv")
+    df = pd.read_csv("/workspaces/Final_Project_Body_Signals/src/data/processed/total_data_c2.csv")
     # Definir las variables numéricas
     num_variables = ['gender', 'Gtp', 'hemoglobin', 'height(cm)', 'triglyceride', 'waist(cm)', 'LDL', 'HDL',
                      'Cholesterol', 'ALT', 'fasting blood sugar', 'systolic', 'AST', 'relaxation', 'weight(kg)',
@@ -192,11 +192,11 @@ def data_visualization():
     st.header("Galería de Imágenes")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/heatmap_correlación.png"), caption="Heatmap Correlation")
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/src/data/imagenes/heatmap_correlación.png"), caption="Heatmap Correlation")
     with col2:
-        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/Correlación.png"), caption="Correlation")
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/src/data/imagenes/Correlación.png"), caption="Correlation")
     with col3:
-        st.image(Image.open("/workspaces/Final_Project_Body_Signals/data/imagenes/outliers.png"), caption="Outliers")
+        st.image(Image.open("/workspaces/Final_Project_Body_Signals/src/data/imagenes/outliers.png"), caption="Outliers")
 
 # Función principal para manejar la navegación entre páginas
 def main():
