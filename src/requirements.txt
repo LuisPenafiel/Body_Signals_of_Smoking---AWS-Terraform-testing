@@ -5,4 +5,3 @@ gunicorn
 numpy
 matplotlib==3.7.1
 seaborn==0.13.1
-pycaret
