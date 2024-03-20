@@ -20,7 +20,7 @@ By utilizing a supervised learning model or "machine learning," it is possible t
          )
     col1, _ = st.columns([2, 1])
     with col1:
-        st.image(Image.open("src/data/imagenes/body.jpg"))
+        st.image(Image.open("src/body.jpg"))
 
 # Página de gráficos informativos
 def data():
@@ -29,11 +29,11 @@ def data():
     st.header("Did you know that")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.image(Image.open("src/data/imagenes/Gender_smoking.png"), caption="Men smoke more than women")
+        st.image(Image.open("src/Gender_smoking.png"), caption="Men smoke more than women")
     with col2:
-        st.image(Image.open("src/data/imagenes/hemoglobine_gender.png"), caption="Higher levels of hemoglobin are associated with smoking")
+        st.image(Image.open("src/hemoglobine_gender.png"), caption="Higher levels of hemoglobin are associated with smoking")
     with col3:
-        st.image(Image.open("src/data/imagenes/outliers.png"), caption="Outliers")
+        st.image(Image.open("src/outliers.png"), caption="Outliers")
 # Página de predicción
 def prediction():
     st.title("Body-Signals-Smoking :no_smoking:")
@@ -192,11 +192,11 @@ def data_visualization():
     st.header("Galería de Imágenes")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.image(Image.open("src/data/imagenes/heatmap_correlación.png"), caption="Heatmap Correlation")
+        st.image(Image.open("src/heatmap_correlación.png"), caption="Heatmap Correlation")
     with col2:
-        st.image(Image.open("src/data/imagenes/Correlación.png"), caption="Correlation")
+        st.image(Image.open("src/Correlación.png"), caption="Correlation")
     with col3:
-        st.image(Image.open("src/data/imagenes/outliers.png"), caption="Outliers")
+        st.image(Image.open("src/outliers.png"), caption="Outliers")
 
 # Función principal para manejar la navegación entre páginas
 def main():
