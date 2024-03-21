@@ -8,32 +8,72 @@ import pandas as pd
 from PIL import Image
 from sklearn.preprocessing import StandardScaler
 
-# Página de inicio
 def home():
     st.title("When Your Body Sends Smoke Signals")
     st.subheader("Body Signals Smoking :no_smoking")
-    st.write('''
-         Scientifically, it is proven that cigarettes/tobacco are harmful to the health of both smokers and those who are considered passive smokers. Smoking has been shown to cause a range of diseases and disorders throughout the body, some more well-known than others. These include cardiovascular and pulmonary problems, influence on diabetes, kidneys, liver, skin, as well as affecting vision, hearing, and oral health, among others. Through various health variables (which we can call markers), it is possible to detect which organs are affected or at risk of disease.
+    st.write('''In today's era of scientific advancement, it's undeniable that cigarettes and tobacco pose grave risks to both smokers and those around them. Extensive research has revealed a wide range of health issues stemming from smoking, spanning from well-known cardiovascular and pulmonary problems to subtler influences on diabetes, renal function, liver health, and even sensory impairments like vision and hearing. Through the analysis of various health markers, we can pinpoint affected organs and gauge susceptibility to disease.
 
-By utilizing a supervised learning model or "machine learning," it is possible to predict whether a person is a smoker or not based on various signals exhibited by the body.
-         '''
-         )
+The "Body Signals of Smoking" project aims to harness bodily cues and biomarkers to predict smoking behaviors. By collecting comprehensive biomedical data, including metrics like hemoglobin levels, cholesterol concentrations, blood pressure readings, among others, we're training a machine learning model—a random forest classifier—to discern between smokers and non-smokers.
+
+Our user-friendly application empowers individuals to input their own biomedical data with ease, allowing the model to swiftly classify their smoking status. This project is about early detection and intervention. By providing a powerful tool for identifying smoking behaviors, we're not only facilitating personal health awareness but also contributing to larger public health initiatives aimed at smoking prevention.
+         ''')
+
+    st.markdown("""
+    <style>
+        .main {
+            background-color: #F7F7FF;
+        }
+        .stButton>button {
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            padding: 14px 28px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .stButton>button:hover {
+            background-color: #45A049;
+        }
+        .highlight:hover {
+            background-color: #FFCCCB;
+            transition: background-color 0.5s ease;
+        }
+        h1 {
+            text-align: center;
+        }
+        .centrado-con-margen {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
     col1, _ = st.columns([2, 1])
     with col1:
-        st.image(Image.open("body.jpg"))
+        st.image(Image.open("body.jpg"), width=600)
 
+   
 # Página de gráficos informativos
 def data():
     st.title("Here's an interesting fact:")
-    # # Image Gallery
+    # Primera fila de imágenes
     st.header("Did you know that")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.image(Image.open("Gender_smoking.png"), caption="Men smoke more than women")
-    with col2:
-        st.image(Image.open("hemoglobine_gender.png"), caption="Higher levels of hemoglobin are associated with smoking")
-    with col3:
-        st.image(Image.open("outliers.png"), caption="Outliers")
+    row1_col1, row1_col2 = st.columns(2)
+    with row1_col1:
+        st.image(Image.open("Gender_smoking.png"), width=300, caption="Men smoke more than women")
+    with row1_col2:
+        st.image(Image.open("hemoglobine_gender.png"), width=300, caption="Higher levels of hemoglobin are associated with smoking")
+    
+    # Segunda fila de imágenes
+    row2_col1, row2_col2 = st.columns(2)
+    with row2_col1:
+        st.image(Image.open("GTP.png"), width=300, caption="Elevated levels of GTP (Guanosine triphosphate) are linked to smoking")
+    with row2_col2:
+        st.image(Image.open("Triglyceride.png"),width=300, caption="Elevated triglyceride levels are linked to tobacco consumption")
+
+
+
 # Página de predicción
 def prediction():
     st.title("Body-Signals-Smoking :no_smoking:")
@@ -186,22 +226,26 @@ def prediction():
         # Mostrar el resultado de la predicción
         st.write("Prediction:", class_dict[str(prediction)])
 
-def data_visualization():
-    st.title("Data Visualization Page")
-    # # Image Gallery
-    st.header("Galería de Imágenes")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.image(Image.open("heatmap_correlación.png"), caption="Heatmap Correlation")
-    with col2:
-        st.image(Image.open("Correlación.png"), caption="Correlation")
-    with col3:
-        st.image(Image.open("outliers.png"), caption="Outliers")
+def Limitations_Future_Improvement():
+    st.title("Limitations and Future Improvement")
+    st.write('''Some limitations of the dataset that may affect the prediction of our models include:
+
+1. Lack of information regarding the time period for sample collection.
+2. Absence of details regarding the country or city from which the data originates.
+It would be beneficial to include these two pieces of information to facilitate the integration of other demographic data.
+
+To enhance the dataset:
+
+1. Incorporate additional demographic or social variables such as educational level, access to healthcare, geographic location, and economic income, among others.
+2. Consider including other physiological variables related to the skin, as tobacco can affect this tissue as well. For instance, measuring exhaled CO levels can provide insights into recent exposure to tobacco smoke.
+
+         '''
+    )
 
 # Función principal para manejar la navegación entre páginas
 def main():
     st.sidebar.title("Menu")
-    selection = st.sidebar.radio("Go to", ["Home","Relevant Data", "Prediction", "Data Visualization"])
+    selection = st.sidebar.radio("Go to", ["Home","Relevant Data", "Prediction", "Limitations and Future Improvement"])
 
     if selection == "Home":
         home()
@@ -209,8 +253,8 @@ def main():
         data()
     elif selection == "Prediction":
         prediction()
-    elif selection == "Data Visualization":
-        data_visualization()
+    elif selection == "Limitations and Future Improvement":
+        Limitations_Future_Improvement()
 
 if __name__ == "__main__":
     main()
