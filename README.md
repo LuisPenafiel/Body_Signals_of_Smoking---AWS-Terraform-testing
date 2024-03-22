@@ -34,6 +34,12 @@ Navigate to the project directory and install the required Python packages:
 pip install -r /workspaces/Final_Project_Body_Signals/src/requirements.txt
 ```
 ```bash
+pip install matplotlib
+```
+```bash
+pip install xgboost
+```
+```bash
 pip install streamlit
 ```
 ```bash
@@ -41,6 +47,13 @@ pip install seaborn
 ```
 ```bash
 pip install pycaret
+```
+```bash
+pip install scipy
+```
+
+```bash
+pip install --upgrade scipy
 ```
 ```bash
 pip install --upgrade pip

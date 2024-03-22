@@ -239,10 +239,23 @@ To enhance the dataset:
          '''
     )
 
-# Función principal para manejar la navegación entre páginas
 def main():
+    # Custom CSS to inject into the Streamlit app
+    st.markdown("""
+    <style>
+    /* Change the sidebar background color */
+    .css-1d391kg {
+        background-color: #FFA07A !important;
+    }
+    /* Change the sidebar text color */
+    .css-1aumxhk {
+        color: #FFD700 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.sidebar.title("Menu")
-    selection = st.sidebar.radio("Go to", ["Home","Relevant Data", "Prediction", "Limitations and Future Improvement"])
+    selection = st.sidebar.radio("Go to", ["Home", "Relevant Data", "Prediction", "Limitations and Future Improvement"])
 
     if selection == "Home":
         home()
