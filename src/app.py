@@ -229,13 +229,15 @@ def Limitations_Future_Improvement():
 
 1. Lack of information regarding the time period for sample collection.
 2. Absence of details regarding the country or city from which the data originates.
+             
 It would be beneficial to include these two pieces of information to facilitate the integration of other demographic data.
-
+             
 To enhance the dataset:
-
-1. Incorporate additional demographic or social variables such as educational level, access to healthcare, geographic location, and economic income, among others.
-2. Consider including other physiological variables related to the skin, as tobacco can affect this tissue as well. For instance, measuring exhaled CO levels can provide insights into recent exposure to tobacco smoke.
-
+1. Include demographic variables (e.g., education, income) and physiological indicators (like exhaled CO levels) to gauge tobacco's impact.
+2. Integrate behavioral data (e.g., smoking habits, quit attempts) for a comprehensive view.
+3. Consider cultural influences on smoking behavior and health outcomes.
+4. Account for environmental factors (e.g., air quality, proximity to pollutants) in risk assessment.
+5. Incorporate user feedback for iterative model enhancement and user interface optimization.
          '''
     )
 
