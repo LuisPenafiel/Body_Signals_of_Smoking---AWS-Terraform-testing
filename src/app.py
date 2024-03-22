@@ -1,6 +1,3 @@
-# Voy a poner como yo hice lo mio con Streamlit ya iremos cambiando y mezclando ambos
-# Aqui esta todo lo que podemos usar https://docs.streamlit.io/library/api-reference    https://www.youtube.com/watch?v=D0D4Pa22iG0&t=1s
-
 from pickle import load
 import streamlit as st
 import numpy as np
