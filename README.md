@@ -3,15 +3,14 @@
 This Readme is designed to kickstart data science projects by providing a basic setup for database connections, data processing, and machine learning model development. It includes a structured folder organization for your datasets and a set of pre-defined Python packages necessary for most data science tasks.
 
 # Data Science Project Body Signals Of Smoking
-Body Signals of Smoking" project aims to develop a system for predicting smoking habits using bodily signals and biomarkers. To achieve this, biomedical data from individuals are collected, including values such as hemoglobin, cholesterol, and blood pressure, among others. These data are used to train a machine learning model, specifically a random forest classifier, which can predict whether a person is a smoker or non-smoker. The application utilizes Streamlit to create a user-friendly interface where users can input their biomedical data through sliders and a dropdown menu. Once the data is entered, the model classifies the user as a smoker or non-smoker. The project seeks to provide a useful tool for early detection of smoking behaviors and potentially contribute to public health initiatives for smoking prevention.
+"Body Signals of Smoking" project aims to develop a system for predicting smoking habits using bodily signals and biomarkers. To achieve this, biomedical data from individuals are collected, including values such as hemoglobin, cholesterol, and blood pressure, among others. These data are used to train a machine learning model, specifically a random forest classifier, which can predict whether a person is a smoker or non-smoker. The application utilizes Streamlit to create a user-friendly interface where users can input their biomedical data through sliders and a dropdown menu. Once the data is entered, the model classifies the user as a smoker or non-smoker. The project seeks to provide a useful tool for early detection of smoking behaviors and potentially contribute to public health initiatives for smoking prevention.
 
 ## Structure
 
 The project is organized as follows:
 
 - `app.py` - The main Python script that you run for the project.
-- `Project_smoking_Body_Signals.py` - A notebook to explore data, play around, visualize, clean and model definition.
-- `utils.py` - This file contains utility code for operations like database connections.
+- `Project_smoking_Body_Signals.ipynb` - A notebook to explore data, play around, visualize, clean and model definition.
 - `requirements.txt` - This file contains the list of necessary python packages.
 - `models/` - This directory should contain Models to Predict the data.
 - `data/` - This directory contains the following subdirectories:
