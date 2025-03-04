@@ -6,3 +6,8 @@ __pycache__
 .ssh/
 .aws/
 *.pkl
+terraform/.terraform.lock.hcl
+terraform/.terraform/
+terraform/LICENSE.txt
+terraform/terraform.tfstate
+terraform/*.zip
