@@ -35,7 +35,7 @@ resource "aws_s3_bucket_object" "images" {
 
 # Crear una instancia EC2 para alojar la app Streamlit
 resource "aws_instance" "smoking_app_instance" {
-  ami           = "ami-0c55b159cbfafe1f0"  # Ubuntu 24.04 LTS en eu-central-1 (verifica la AMI más reciente)
+  ami           = "ami-04e601abe3e1a910f"  # AMI de Ubuntu 22.04 LTS en eu-central-1 (verifica en la consola)
   instance_type = "t2.micro"               # Gratis en Free Tier
   key_name      = "smoking-key"            # Crea una clave SSH en AWS si no la tienes
   security_groups = [aws_security_group.smoking_sg.name]
@@ -97,11 +97,10 @@ resource "aws_security_group" "smoking_sg" {
 resource "aws_db_instance" "smoking_metrics_db" {
   allocated_storage    = 20
   engine               = "mysql"
-  engine_version       = "8.0"
+  engine_version       = "5.7"  # Versión compatible con db.t2.micro en eu-central-1
   instance_class       = "db.t2.micro"  # Gratis en Free Tier con límites
   username             = "admin"
   password             = var.db_password
-  parameter_group_name = "default.mysql8.0"
   skip_final_snapshot  = true
 
   tags = {
