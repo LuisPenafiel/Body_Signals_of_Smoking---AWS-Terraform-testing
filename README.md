@@ -1,3 +1,127 @@
+# Body Signals of Smoking on AWS with Terraform
+
+This project predicts smoking habits using biomedical health markers, leveraging a Random Forest model and an interactive Streamlit interface, deployed on AWS using Infrastructure as Code (IaC) with Terraform.
+
+## Deployment on AWS with Terraform
+
+- **Cloud Infrastructure**:
+  - **AWS S3**: Stores `smoking.csv` and files in `smoking-body-signals-data-dev`.
+  - **AWS EC2**: A t2.micro instance runs the Streamlit app (accessible at `http://<public_ip>`).
+  - **AWS RDS (optional)**: MySQL database for model metrics in `eu-central-1`.
+- **Terraform**:
+  - **main.tf**: Configures AWS resources (S3, EC2, RDS) for the deployment.
+  - **variables.tf**: Defines variables like the region (`eu-central-1`), environment (`dev`), and RDS password.
+  - **outputs.tf**: Provides outputs such as the S3 bucket name (`smoking-body-signals-data-dev`), EC2 public IP, and RDS endpoint.
+
+## AWS Deployment Instructions
+
+1. Configure AWS CLI with `aws configure` using the `eu-central-1` region.
+2. Clone this repository and run `terraform init`, `terraform plan`, `terraform apply` from the `/terraform` folder.
+3. Upload `smoking.csv` and files to S3 with `aws s3 cp data/raw/smoking.csv s3://smoking-body-signals-data-dev/data/raw/` and `aws s3 cp src/ s3://smoking-body-signals-data-dev/src/ --recursive`.
+4. Connect to EC2, install dependencies, and run `streamlit run src/app.py --server.port 80 --server.address 0.0.0.0`.
+
+## Screenshots
+- [Images of the app on EC2 (http://<public_ip>), S3 bucket, terraform apply output].
+
+---
+
+# Body Signals of Smoking - Data Science Project
+
+This project aims to predict smoking habits using bodily signals and biomarkers. By leveraging a Random Forest Classifier trained on biomedical data—such as hemoglobin, cholesterol, and blood pressure—the system classifies individuals as smokers or non-smokers. A user-friendly Streamlit application allows users to input their data via sliders and dropdowns, delivering real-time predictions. This tool supports early detection of smoking behaviors and contributes to public health initiatives for smoking prevention.
+
+---
+
+## Project Overview
+
+- **Objective**: Develop a machine learning model to predict smoking status based on health markers and provide an interactive interface for users.
+- **Dataset**: Biomedical data from individuals, including demographic and physiological features (e.g., age, gender, hemoglobin levels).
+- **Model**: Random Forest Classifier with an accuracy of 83.22%, sensitivity of 79.76%, and specificity of 85.36%.
+- **Application**: A Streamlit-based UI for inputting data and receiving predictions.
+- **Source**: [Kaggle - Body Signal of Smoking](https://www.kaggle.com/datasets/kukuroo3/body-signal-of-smoking)
+
+---
+
+## Setup Instructions
+
+### Prerequisites
+- **Python**: Version 3.11 or higher
+- **pip**: Package installer for Python
+- **Git**: For cloning the repository (optional)
+
+### Installation
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking.git
+   cd Body_Signals_of_Smoking
+
+---
+
+# Body Signals of Smoking - Data Science Project
+
+This project aims to predict smoking habits using bodily signals and biomarkers. By leveraging a Random Forest Classifier trained on biomedical data—such as hemoglobin, cholesterol, and blood pressure—the system classifies individuals as smokers or non-smokers. A user-friendly Streamlit application allows users to input their data via sliders and dropdowns, delivering real-time predictions. This tool supports early detection of smoking behaviors and contributes to public health initiatives for smoking prevention.
+
+---
+
+## Project Overview
+
+- **Objective**: Develop a machine learning model to predict smoking status based on health markers and provide an interactive interface for users.
+- **Dataset**: Biomedical data from individuals, including demographic and physiological features (e.g., age, gender, hemoglobin levels).
+- **Model**: Random Forest Classifier with an accuracy of 83.22%, sensitivity of 79.76%, and specificity of 85.36%.
+- **Application**: A Streamlit-based UI for inputting data and receiving predictions.
+- **Source**: [Kaggle - Body Signal of Smoking](https://www.kaggle.com/datasets/kukuroo3/body-signal-of-smoking)
+
+---
+
+## Setup Instructions
+
+### Prerequisites
+- **Python**: Version 3.11 or higher
+- **pip**: Package installer for Python
+- **Git**: For cloning the repository (optional)
+
+### Installation
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking.git
+   cd Body_Signals_of_Smoking
+
+
+---
+
+# Body Signals of Smoking - Data Science Project 
+
+This project aims to predict smoking habits using bodily signals and biomarkers. By leveraging a Random Forest Classifier trained on biomedical data—such as hemoglobin, cholesterol, and blood pressure—the system classifies individuals as smokers or non-smokers. A user-friendly Streamlit application allows users to input their data via sliders and dropdowns, delivering real-time predictions. This tool supports early detection of smoking behaviors and contributes to public health initiatives for smoking prevention.
+
+---
+
+## Project Overview
+
+- **Objective**: Develop a machine learning model to predict smoking status based on health markers and provide an interactive interface for users.
+- **Dataset**: Biomedical data from individuals, including demographic and physiological features (e.g., age, gender, hemoglobin levels).
+- **Model**: Random Forest Classifier with an accuracy of 83.22%, sensitivity of 79.76%, and specificity of 85.36%.
+- **Application**: A Streamlit-based UI for inputting data and receiving predictions.
+- **Source**: [Kaggle - Body Signal of Smoking](https://www.kaggle.com/datasets/kukuroo3/body-signal-of-smoking)
+
+---
+
+## Setup Instructions
+
+### Prerequisites
+- **Python**: Version 3.11 or higher
+- **pip**: Package installer for Python
+- **Git**: For cloning the repository (optional)
+
+### Installation
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking.git
+   cd Body_Signals_of_Smoking
+
+
+---
+
+
+
 # Body Signals of Smoking - Data Science Project
 
 This project aims to predict smoking habits using bodily signals and biomarkers. By leveraging a Random Forest Classifier trained on biomedical data—such as hemoglobin, cholesterol, and blood pressure—the system classifies individuals as smokers or non-smokers. A user-friendly Streamlit application allows users to input their data via sliders and dropdowns, delivering real-time predictions. This tool supports early detection of smoking behaviors and contributes to public health initiatives for smoking prevention.
@@ -18,15 +142,34 @@ This project aims to predict smoking habits using bodily signals and biomarkers.
 
 ```
 Body_Signals_of_Smoking/
-├── app.py                  # Main script to run the Streamlit application
-├── Project_smoking_Body_Signals.ipynb  # Jupyter notebook for EDA, cleaning, and model development
-├── requirements.txt        # List of required Python packages
-├── models/                 # Directory for trained models
-│   └── randomforest_default_42.pkl  # Example saved Random Forest model
-├── data/                   # Directory for datasets
-│   ├── raw/               # Raw, unprocessed data (e.g., smoking.csv)
-│   └── processed/         # Processed data ready for modeling
-└── README.md              # Project documentation (this file)
+├── devcontainer/
+├── vscode/
+├── data/
+│   ├── interim/
+│   ├── processed/
+│   └── raw/
+├── models/
+│   ├── .gitkeep
+│   └── random_forest_model_Default.pkl
+├── src/
+│   ├── app.py
+│   ├── body.jpg
+│   ├── Gender_smoking.png
+│   ├── GTP.png
+│   ├── hemoglobin_gender.png
+│   ├── logs.log
+│   ├── outliers.png
+│   ├── Project_Smoking_Body_Signals.ipynb
+│   ├── random_forest_model_Default.pkl
+│   ├── requirements.txt
+│   ├── total_data_c2.csv
+│   └── Triglyceride.png
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   └── outputs.tf
+├── .gitignore
+└── README.md
 ```
 
 ---
