@@ -70,8 +70,6 @@ def data():
         st.image(Image.open("Triglyceride.png"),width=300, caption="Elevated triglyceride levels are linked to tobacco consumption")
 
 
-
-# Página de predicción
 def prediction():
     st.title("Body-Signals-Smoking :no_smoking:")
     st.subheader("Introduce your data and analyze what your body signals reveal about smoking")
@@ -98,23 +96,26 @@ def prediction():
         </style>
     """, unsafe_allow_html=True)
 
-    # Cargar el modelo
-    model = load(open("random_forest_model_Default.pkl", "rb"))
+    # Cargar el modelo y el escalador
+    try:
+        model = load(open("/workspaces/Body_Signals_of_Smoking/src/random_forest_model_Default.pkl", "rb"))
+        scaler = load(open("/workspaces/Body_Signals_of_Smoking/src/scaler.pkl", "rb"))
+    except FileNotFoundError as e:
+        st.error(f"Error: {e}. Please ensure random_forest_model_Default.pkl and scaler.pkl are in /workspaces/Final_Project_Body_Signals/")
+        return
+
     # Clasificación de las etiquetas
-    class_dict = {
-        "0": "Non-Smoking",
-        "1": "Smoking",
-    }
-    # Leer los datos
-    df = pd.read_csv("total_data_c2.csv")
+    class_dict = {"0": "Non-Smoking", "1": "Smoking"}
+
     # Definir las variables numéricas
     num_variables = ['gender', 'Gtp', 'hemoglobin', 'height(cm)', 'triglyceride', 'waist(cm)', 'LDL', 'HDL',
                      'Cholesterol', 'ALT', 'fasting blood sugar', 'systolic', 'AST', 'relaxation', 'weight(kg)',
                      'age', 'serum creatinine', 'eyesight(left)', 'eyesight(right)', 'tartar', 'dental caries',
                      'Urine protein', 'hearing(left)', 'hearing(right)']
-    # Rangos de las variables
+
+    # Rangos de las variables (ajustados según el dataset)
     variable_ranges = {
-        'gender': (0, 1),  # Assuming gender is coded as 0 and 1
+        'gender': (0, 1),
         'hemoglobin': (7.4, 18.7),
         'height(cm)': (100, 230),
         'weight(kg)': (35, 300),
@@ -129,99 +130,88 @@ def prediction():
         'eyesight(right)': (0, 2),
         'eyesight(left)': (0, 2),
         'AST': (10, 1543),
-        'Cholesterol': (300, 700),
-        'LDL': (70, 300),
-        'age': (0, 100),
-        'HDL': (20, 300),
+        'Cholesterol': (120, 700),  # Ajustado al rango real de smoking.csv
+        'LDL': (0, 300),  # Ajustado al rango real
+        'age': (20, 100),  # Ajustado al rango real
+        'HDL': (0, 300),  # Ajustado al rango real
         'tartar': (0, 1),
         'dental caries': (0, 1),
         'hearing(left)': (1, 2),
-        'hearing(right)': (1, 2)
+        'hearing(right)': (1, 2),
+        'Urine protein': (1, 4)
     }
-    # Crear un DataFrame con nombres de columnas para el escalado
-    df_scaled = pd.DataFrame(data=np.zeros((1, len(num_variables))), columns=num_variables)
 
-    # Inicializar el escalador
-    scaler = StandardScaler()
-    scaler.fit(df[num_variables])
-
-
-
-    # Crear un selectbox para el género
+    # Interfaz de usuario
     gender = st.selectbox("Gender", ["F", "M"])
-
-    # Crear sliders para las otras variables
     val2 = st.slider("Gtp", min_value=1.0, max_value=996.0, step=0.1)
     val3 = st.slider("Hemoglobin", min_value=7.4, max_value=18.7, step=0.1)
     val4 = st.slider("Height(cm)", min_value=100.0, max_value=230.0, step=0.1)
     val5 = st.slider("Triglyceride", min_value=31.0, max_value=1029.0, step=0.1)
     val6 = st.slider("Waist(cm)", min_value=80.0, max_value=102.0, step=0.1)
-    val7 = st.slider("LDL", min_value=70.0, max_value=300.0, step=0.1)
-    val8 = st.slider("HDL", min_value=20.0, max_value=300.0, step=0.1)
-    val9 = st.slider("Cholesterol", min_value=300.0, max_value=700.0, step=0.1)
+    val7 = st.slider("LDL", min_value=0.0, max_value=300.0, step=0.1)
+    val8 = st.slider("HDL", min_value=0.0, max_value=300.0, step=0.1)
+    val9 = st.slider("Cholesterol", min_value=120.0, max_value=700.0, step=0.1)
     val10 = st.slider("ALT", min_value=1.0, max_value=996.0, step=0.1)
     val11 = st.slider("Fasting Blood Sugar", min_value=0.0, max_value=126.0, step=0.1)
     val12 = st.slider("Systolic", min_value=0.0, max_value=140.0, step=0.1)
     val13 = st.slider("AST", min_value=10.0, max_value=1543.0, step=0.1)
     val14 = st.slider("Relaxation", min_value=0.0, max_value=120.0, step=0.1)
     val15 = st.slider("Weight(kg)", min_value=35.0, max_value=300.0, step=0.1)
-    val16 = st.slider("Age", min_value=0.0, max_value=100.0, step=0.1)
+    val16 = st.slider("Age", min_value=20.0, max_value=100.0, step=0.1)
     val17 = st.slider("Serum Creatinine", min_value=0.27, max_value=6.81, step=0.01)
-    val18 = st.slider("Eyesight (Left)", min_value=0, max_value=2)
-    val19 = st.slider("Eyesight (Right)", min_value=0, max_value=2)
-    val20 = st.slider("Urine Protein", min_value=1, max_value=6)
+    val18 = st.slider("Eyesight (Left)", min_value=0.0, max_value=2.0, step=0.1)
+    val19 = st.slider("Eyesight (Right)", min_value=0.0, max_value=2.0, step=0.1)
+    val20 = st.slider("Urine Protein", min_value=1.0, max_value=4.0, step=0.1)
 
-    # Crear un selectbox para la audición
     hearing_left = st.selectbox("Hearing (Left)", ["Normal", "Difficulty"])
     hearing_right = st.selectbox("Hearing (Right)", ["Normal", "Difficulty"])
     tartar = st.selectbox("Tartar", ["No", "Yes"])
     dental_caries = st.selectbox("Dental Caries", ["No", "Yes"])
 
-    # Botón para realizar la predicción
     if st.button("Predict"):
-        # Mapear el género a 0 o 1
+        # Mapear valores
         gender_value = 1 if gender == "M" else 0
-
-        # Mapear la audición a 1 o 2
         hearing_left_value = 1 if hearing_left == "Normal" else 2
         hearing_right_value = 1 if hearing_right == "Normal" else 2
         tartar_value = 0 if tartar == "No" else 1
         dental_caries_value = 0 if dental_caries == "No" else 1
 
-        # Crear un DataFrame con los valores de los sliders
+        # Crear DataFrame con los valores
         data = {
-            "gender": gender_value,
-            "Gtp": val2,
-            "hemoglobin": val3,
-            "height(cm)": val4,
-            "triglyceride": val5,
-            "waist(cm)": val6,
-            "LDL": val7,
-            "HDL": val8,
-            "Cholesterol": val9,
-            "ALT": val10,
-            "fasting blood sugar": val11,
-            "systolic": val12,
-            "AST": val13,
-            "relaxation": val14,
-            "weight(kg)": val15,
-            "age": val16,
-            "serum creatinine": val17,
-            "eyesight(left)": val18,
-            "eyesight(right)": val19,
-            "tartar": tartar_value,
-            "dental caries": dental_caries_value,
-            "Urine protein": val20,
-            "hearing(left)": hearing_left_value,
-            "hearing(right)": hearing_right_value
+            "gender": [gender_value],
+            "Gtp": [val2],
+            "hemoglobin": [val3],
+            "height(cm)": [val4],
+            "triglyceride": [val5],
+            "waist(cm)": [val6],
+            "LDL": [val7],
+            "HDL": [val8],
+            "Cholesterol": [val9],
+            "ALT": [val10],
+            "fasting blood sugar": [val11],
+            "systolic": [val12],
+            "AST": [val13],
+            "relaxation": [val14],
+            "weight(kg)": [val15],
+            "age": [val16],
+            "serum creatinine": [val17],
+            "eyesight(left)": [val18],
+            "eyesight(right)": [val19],
+            "tartar": [tartar_value],
+            "dental caries": [dental_caries_value],
+            "Urine protein": [val20],
+            "hearing(left)": [hearing_left_value],
+            "hearing(right)": [hearing_right_value]
         }
-        # Crear un DataFrame a partir de los valores y escalarlos
-        df_scaled = pd.DataFrame(data=[data])
-        data_normalized = scaler.transform(df_scaled)
-        # Realizar la predicción
-        prediction = model.predict(data_normalized)[0]
-        # Mostrar el resultado de la predicción
-        st.write("Prediction:", class_dict[str(prediction)])
+        df_scaled = pd.DataFrame(data, columns=num_variables)
+
+        # Escalar los datos
+        try:
+            data_normalized = scaler.transform(df_scaled)
+            prediction = model.predict(data_normalized)[0]
+            st.write("Prediction:", class_dict[str(prediction)])
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
 
 def Limitations_Future_Improvement():
     st.title("Limitations and Future Improvement")
