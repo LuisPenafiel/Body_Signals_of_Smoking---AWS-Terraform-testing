@@ -141,35 +141,39 @@ This project aims to predict smoking habits using bodily signals and biomarkers.
 ## Project Structure
 
 ```
-Body_Signals_of_Smoking/
-├── devcontainer/
-├── vscode/
-├── data/
-│   ├── interim/
-│   ├── processed/
-│   └── raw/
-├── models/
-│   ├── .gitkeep
-│   └── random_forest_model_Default.pkl
-├── src/
-│   ├── app.py
-│   ├── body.jpg
-│   ├── Gender_smoking.png
-│   ├── GTP.png
-│   ├── hemoglobin_gender.png
-│   ├── logs.log
-│   ├── outliers.png
-│   ├── Project_Smoking_Body_Signals.ipynb
-│   ├── random_forest_model_Default.pkl
-│   ├── requirements.txt
-│   ├── total_data_c2.csv
-│   └── Triglyceride.png
-├── terraform/
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-├── .gitignore
-└── README.md
+.
+.
+├── .devcontainer/               # Dev container configuration (for VSCode)
+├── .vscode/                     # VSCode workspace settings
+├── data/                        # Data directory
+│   ├── interim/                 # Intermediate data (e.g., cleaned or transformed data)
+│   ├── processed/               # Processed data (e.g., final datasets for modeling)
+│       └── total_data_c2.csv    # Processed dataset
+│   └── raw/                     # Raw data (e.g., original datasets)
+│       └── smoking.csv          # Raw dataset
+├── models/                      # Trained models
+│   └── random_forest_model_Default.pkl  # Saved model
+├── src/                         # Source code
+│   ├── GTP.png                  # Image/plot
+│   ├── Gender_smoking.png       # Image/plot
+│   ├── Project_Smoking_Body_Signals.ipynb  # Jupyter Notebook
+│   ├── Triglyceride.png         # Image/plot
+│   ├── app.py                   # Python script (e.g., Flask app)
+│   ├── body.jpg                 # Image
+│   ├── hemoglobine_gender.png   # Image/plot
+│   ├── logs.log                 # Log file
+│   ├── outliers.png             # Image/plot
+│   ├── random_forest_model_Default.pkl  # Duplicate model (consider removing)
+│   ├── scaler.pkl               # Saved scaler object
+│   └── total_data_c2.csv        # Duplicate dataset (consider removing)
+├── terraform/                   # Terraform configuration
+│   ├── main.tf                  # Main Terraform configuration
+│   ├── outputs.tf               # Terraform outputs
+│   ├── variables.tf             # Terraform variables
+│   └── LICENSE.txt              # License file
+├── .gitignore                   # Git ignore file
+├── README.md                    # Project documentation
+└── requirements.txt             # Python dependencies
 ```
 
 ---
