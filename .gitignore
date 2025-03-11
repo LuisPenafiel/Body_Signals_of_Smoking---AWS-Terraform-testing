@@ -1,6 +1,8 @@
 __pycache__
 .env
 .learn
+----------------------------------------
+# AWS
 
 *.pem
 .ssh/
@@ -11,3 +13,14 @@ terraform/.terraform/
 terraform/LICENSE.txt
 terraform/terraform.tfstate
 terraform/*.zip
+
+# Ignorar archivos de AWS CLI y configuraciones locales
+aws/
+awscliv2.zip
+
+# Ignorar base de datos local
+data/smoking_db.sqlite
+
+# Ignorar otros archivos generados o sensibles
+*.log
+*.pyc
