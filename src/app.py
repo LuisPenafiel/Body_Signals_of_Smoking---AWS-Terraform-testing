@@ -35,19 +35,19 @@ TRIGLY_PATH = os.path.join(BASE_PATH, 'Triglyceride.png')
 
 # --- Function to Download Files from S3 (only on AWS) ---
 def download_s3_files():
-    if not IS_AWS:
+    if not IS_AWS:  # Si no estamos en AWS, no intentamos descargar
         return
     try:
-        s3.download_file(BUCKET_NAME, 'random_forest_model_Default.pkl', MODEL_PATH)
-        s3.download_file(BUCKET_NAME, 'scaler.pkl', SCALER_PATH)
-        s3.download_file(BUCKET_NAME, 'body.jpg', BODY_IMAGE_PATH)
-        s3.download_file(BUCKET_NAME, 'Gender_smoking.png', GENDER_SMOKE_PATH)
-        s3.download_file(BUCKET_NAME, 'GTP.png', GTP_PATH)
-        s3.download_file(BUCKET_NAME, 'hemoglobine_gender.png', HEMO_PATH)
-        s3.download_file(BUCKET_NAME, 'Triglyceride.png', TRIGLY_PATH)
-        st.success("Files downloaded successfully from S3.")
+        s3.download_file(BUCKET_NAME, 'src/random_forest_model_Default.pkl', MODEL_PATH)
+        s3.download_file(BUCKET_NAME, 'src/scaler.pkl', SCALER_PATH)
+        s3.download_file(BUCKET_NAME, 'src/body.jpg', BODY_IMAGE_PATH)
+        s3.download_file(BUCKET_NAME, 'src/Gender_smoking.png', GENDER_SMOKE_PATH)
+        s3.download_file(BUCKET_NAME, 'src/GTP.png', GTP_PATH)
+        s3.download_file(BUCKET_NAME, 'src/hemoglobine_gender.png', HEMO_PATH)
+        s3.download_file(BUCKET_NAME, 'src/Triglyceride.png', TRIGLY_PATH)
+        st.success("Archivos descargados exitosamente desde S3.")
     except Exception as e:
-        st.error(f"Error downloading files from S3: {e}")
+        st.error(f"Error al descargar archivos desde S3: {e}")
         st.stop()
 
 # --- Database Configuration ---
