@@ -21,7 +21,11 @@ This project predicts smoking habits using biomedical health markers, leveraging
 4. Connect to EC2, install dependencies, and run `streamlit run src/app.py --server.port 80 --server.address 0.0.0.0`.
 
 ## Screenshots
-- [Images of the app on EC2 (http://<public_ip>), S3 bucket, terraform apply output].
+- [Images of the app on EC2 (http://3.66.168.76:8501/), S3 bucket, terraform apply output].
+
+## Improvements
+1. Needs to improve the security with https://
+2. Needs to be able to connect RDS and with MySQL 
 
 ---
 
