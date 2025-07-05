@@ -116,9 +116,10 @@ terraform {
   backend "remote" {
     organization = "luis-terraform-learning"
     workspaces {
-      name = "body-signals-of-smoking"
+      name = "body-signals-of-smoking"  
     }
   }
+}
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -144,4 +145,4 @@ resource "random_id" "bucket_suffix" {
   byte_length = 8
 }
 
-# prueba4
+# prueba5
