@@ -126,20 +126,18 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-central-1"
-}
-
-resource "aws_s3_bucket" "test_bucket" {
-  bucket = "my-test-bucket-${random_id.bucket_suffix.hex}"
-  acl    = "private"
-  tags = {
-    Name        = "TestBucket"
-    Environment = "dev"
-  }
+  region = var.AWS_REGION  # Cambiado de var.region a var.AWS_REGION
 }
 
 resource "random_id" "bucket_suffix" {
   byte_length = 8
 }
 
+resource "aws_s3_bucket" "smoking_data_bucket" {
+  bucket = "smoking-body-signals-data-${var.env}-${random_id.bucket_suffix.hex}"
+  tags = {
+    Name        = "Smoking Data Bucket"
+    Environment = var.env
+  }
+}
 # prueba5

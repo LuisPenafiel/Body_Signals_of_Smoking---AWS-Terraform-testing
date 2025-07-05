@@ -389,28 +389,6 @@ Successful AWS identity verification:
 - Prepare user guide
 - Complete project documentation
 
-## Project Roadmap
-
-```mermaid
-gantt
-    title Project Development Timeline
-    dateFormat  YYYY-MM-DD
-    axisFormat %b %d
-    
-    section Infrastructure
-    Environment Setup        :done, env1, 2025-07-05, 1d
-    Terraform Configuration :active, env2, 2025-07-07, 2d
-    Cloud Deployment        : crit, env3, 2025-07-16, 3d
-    
-    section Application
-    Core Development       : dev1, 2025-07-09, 5d
-    Testing Phase          : dev2, after dev1, 3d
-    
-    section Finalization
-    Documentation         : doc1, 2025-07-19, 2d
-    API Integration       : doc2, after doc1, 1d
-
-```
 
 ### Project Setup
 - Prerequisites

@@ -19,13 +19,20 @@
 # /terraform/variables.tf
 
 variable "AWS_REGION" {
-  description = "Región de AWS"
+  description = "AWS region"
   type        = string
+}
+
+variable "env" {
+  description = "Environment name (e.g., dev, prod)"
+  type        = string
+  default     = "dev"  # Opcional: un valor por defecto
 }
 
 variable "AWS_ACCESS_KEY_ID" {
   description = "ID de clave de acceso de AWS"
   type        = string
+  sensitive   = true
 }
 
 variable "AWS_SECRET_ACCESS_KEY" {
