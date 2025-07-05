@@ -2,6 +2,10 @@
   "name": "Body Signals of Smoking",
   "image": "mcr.microsoft.com/devcontainers/python:0-3.11",
   "postCreateCommand": "/bin/bash .devcontainer/post-create.sh",
+  "containerEnv": {
+    "AWS_ACCESS_KEY_ID": "${localEnv:AWS_ACCESS_KEY_ID}",
+    "AWS_SECRET_ACCESS_KEY": "${localEnv:AWS_SECRET_ACCESS_KEY}"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
