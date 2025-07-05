@@ -251,3 +251,216 @@ The Jupyter notebook (`Project_smoking_Body_Signals.ipynb`) is the core explorat
 
 This project is unlicensed and open for educational use. Please attribute the contributors if reused.
 
+-------------------------------------------------------------------------------------
+
+
+markdown
+# Body Signals of Smoking Project
+
+![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
+
+A machine learning application for detecting smoking signals deployed on AWS using Terraform infrastructure as code.
+
+## Project Overview
+
+**Goal**: Build and deploy a Streamlit application with machine learning models on AWS, managed with Terraform.
+
+**Start Date**: July 5, 2025  
+**Duration**: 14 days  
+**Status**: In Progress 🚧
+
+## Daily Progress Log
+
+### Day 1 (Saturday, July 5, 2025)
+✅ **Tasks Completed**:
+- Set up Codespaces environment with custom `devcontainer.json`
+- Configured `post-create.sh` to auto-install:
+  - AWS CLI
+  - Terraform 1.12.2
+- Created IAM user `aws-examples` with AdministratorAccess policy
+- Securely stored AWS credentials as GitHub Secrets
+- Verified installations:
+
+  ```bash
+  aws --version
+  terraform --version
+  ```
+📝 Notes:
+
+Successful AWS identity verification:
+
+
+### Upcoming Days
+
+#### Day 2 (Monday, July 7, 2025)
+🔜 **Planned Tasks**:
+- Configure Terraform Cloud backend
+- Link GitHub repository to Terraform Cloud
+- Set up workspace variables
+- Test remote state management
+
+#### Day 3 (Tuesday, July 8, 2025)
+🔜 **Planned Tasks**:
+- Adapt Terraform templates from reference architecture
+- Configure AWS provider settings
+- Initialize VPC module
+- Set up security groups
+
+#### Day 4 (Wednesday, July 9, 2025)
+🔜 **Planned Tasks**:
+- Implement basic Streamlit application skeleton
+- Add data ingestion functionality
+- Configure basic visualization
+- Set up project structure
+
+#### Day 5 (Thursday, July 10, 2025)
+🔜 **Planned Tasks**:
+- Modularize application code
+- Separate concerns:
+- Data processing
+- Model inference
+- UI components
+- Implement configuration management
+
+#### Day 6 (Friday, July 11, 2025)
+🔜 **Planned Tasks**:
+- Implement comprehensive logging
+- Add error handling middleware
+- Set up monitoring alerts
+- Configure application insights
+
+#### Day 7 (Saturday, July 12, 2025)
+🔜 **Planned Tasks**:
+- Create EC2 deployment package
+- Configure AMI with dependencies
+- Prepare user data scripts
+- Test local deployment
+
+#### Day 8 (Monday, July 14, 2025)
+🔜 **Planned Tasks**:
+- Write unit tests for core functionality
+- Implement test fixtures
+- Configure pytest framework
+- Set up code coverage tracking
+
+#### Day 9 (Tuesday, July 15, 2025)
+🔜 **Planned Tasks**:
+- Perform integration tests
+- Test AWS service integrations
+- Validate end-to-end workflow
+- Stress test application
+
+#### Day 10 (Wednesday, July 16, 2025)
+🔜 **Planned Tasks**:
+- Deploy core infrastructure:
+- EC2 instances
+- S3 buckets
+- IAM roles
+- Configure auto-scaling
+- Set up load balancing
+
+#### Day 11 (Thursday, July 17, 2025)
+🔜 **Planned Tasks**:
+- Verify EC2 deployment
+- Test application accessibility
+- Monitor resource utilization
+- Optimize instance sizing
+
+#### Day 12 (Friday, July 18, 2025)
+🔜 **Planned Tasks**:
+- Adapt application for serverless
+- Package for Lambda deployment
+- Configure layer dependencies
+- Test cold start performance
+
+#### Day 13 (Saturday, July 19, 2025)
+🔜 **Planned Tasks**:
+- Deploy Lambda functions
+- Configure API Gateway
+- Set up route mappings
+- Implement authorization
+
+#### Day 14 (Sunday, July 20, 2025)
+🔜 **Planned Tasks**:
+- Conduct final API testing
+- Document all endpoints
+- Prepare user guide
+- Complete project documentation
+
+## Project Roadmap
+
+```mermaid
+gantt
+    title Project Development Timeline
+    dateFormat  YYYY-MM-DD
+    axisFormat %b %d
+    
+    section Infrastructure
+    Environment Setup        :done, env1, 2025-07-05, 1d
+    Terraform Configuration :active, env2, 2025-07-07, 2d
+    Cloud Deployment        : crit, env3, 2025-07-16, 3d
+    
+    section Application
+    Core Development       : dev1, 2025-07-09, 5d
+    Testing Phase          : dev2, after dev1, 3d
+    
+    section Finalization
+    Documentation         : doc1, 2025-07-19, 2d
+    API Integration       : doc2, after doc1, 1d
+
+```
+
+### Project Setup
+- Prerequisites
+- GitHub account with Codespaces access
+- AWS account with IAM permissions
+- Terraform Cloud account (optional)
+
+Installation
+Clone the repository:
+
+```bash
+git clone <repository-url>
+Open in GitHub Codespaces or configure local environment using the provided devcontainer.json
+```
+
+### Configure AWS credentials:
+
+Set as GitHub Secrets:
+
+- AWS_ACCESS_KEY_ID
+
+- AWS_SECRET_ACCESS_KEY
+
+Or configure locally:
+
+```bash
+aws configure
+Initialize Terraform:
+```
+
+```bash
+cd terraform/
+terraform init
+terraform plan
+```
+
+Future Updates
+This README will be updated daily with progress. Check back for the latest developments!
+
+Last Updated: July 5, 2025
+
+text
+
+This version includes:
+1. Professional badges for technologies used
+2. Clear project status indication
+3. Well-organized progress log with emoji visuals
+4. Responsive table for upcoming tasks
+5. Clean setup instructions
+6. Consistent formatting and spacing
+7. Last updated timestamp
+8. Clear section headings
+
