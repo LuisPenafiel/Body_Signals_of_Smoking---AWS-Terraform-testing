@@ -1,3 +1,3 @@
-resource "null_resource" "test" {}
-
-# prueba
+# resource "null_resource" "test" {}
+# 
+# # prueba
