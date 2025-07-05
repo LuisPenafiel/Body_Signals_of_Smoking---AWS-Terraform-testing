@@ -74,3 +74,12 @@ gunicorn
 matplotlib==3.7.1
 boto3                     - `boto3` para interactuar con AWS S3 desde `app.py`
 mysql-connector-python    - `mysqlconnectorpython` si usas RDS para métricas
+
+streamlit
+scikit-learn
+pandas
+numpy
+matplotlib
+seaborn
+boto3
+mysql-connector-python
