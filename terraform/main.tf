@@ -114,7 +114,7 @@
 
 terraform {
   backend "remote" {
-    organization = "https://app.terraform.io/app/luis-terraform-learning"  
+    organization = "luis-terraform-learning"
     workspaces {
       name = "body-signals-of-smoking"
     }
@@ -128,5 +128,18 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-central-1"  # Región de Frankfurt
+  region = "eu-central-1"
+}
+
+resource "aws_s3_bucket" "test_bucket" {
+  bucket = "my-test-bucket-${random_id.bucket_suffix.hex}"
+  acl    = "private"
+  tags = {
+    Name        = "TestBucket"
+    Environment = "dev"
+  }
+}
+
+resource "random_id" "bucket_suffix" {
+  byte_length = 8
 }
