@@ -143,3 +143,5 @@ resource "aws_s3_bucket" "test_bucket" {
 resource "random_id" "bucket_suffix" {
   byte_length = 8
 }
+
+# prueba
