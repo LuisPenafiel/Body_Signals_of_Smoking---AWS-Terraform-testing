@@ -110,8 +110,6 @@
 # }
 # _____________________________________________________________________
 
-# /terraform/main.tf
-
 terraform {
   backend "remote" {
     organization = "luis-terraform-learning"
@@ -119,7 +117,6 @@ terraform {
       name = "body-signals-of-smoking"  
     }
   }
-}
   required_providers {
     aws = {
       source  = "hashicorp/aws"
