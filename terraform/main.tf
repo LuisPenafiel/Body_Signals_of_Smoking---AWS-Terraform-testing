@@ -120,7 +120,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
+      version = "~> 5.30.0"  # Upgraded to 5.x series
     }
   }
 }
@@ -129,54 +129,56 @@ provider "aws" {
   region = var.AWS_REGION
 }
 
-# VPC básica
-resource "aws_vpc" "smoking_vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.8.0"  # Keep this version
+
+  name = "smoking-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["${var.AWS_REGION}a", "${var.AWS_REGION}b"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
+
+  enable_nat_gateway     = false
+  enable_vpn_gateway     = false
+  enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
+
   tags = {
-    Name        = "SmokingVPC-${var.env}"
     Environment = var.env
   }
 }
+resource "aws_security_group" "smoking_sg" {
+  name        = "smoking-app-sg-${var.env}"
+  description = "Security group for Smoking App"
+  vpc_id      = module.vpc.vpc_id
 
-# Subred pública
-resource "aws_subnet" "public_subnet" {
-  vpc_id                  = aws_vpc.smoking_vpc.id
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
+  # Permitir tráfico HTTP (puerto 80)
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Para pruebas; limita en producción
+  }
+
+  # Permitir SSH (puerto 22, solo para pruebas)
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Limita en producción a tu IP
+  }
+
+  # Permitir todo el tráfico saliente
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   tags = {
-    Name        = "PublicSubnet-${var.env}"
+    Name        = "SmokingAppSG-${var.env}"
     Environment = var.env
   }
 }
-
-# Internet Gateway
-resource "aws_internet_gateway" "smoking_igw" {
-  vpc_id = aws_vpc.smoking_vpc.id
-  tags = {
-    Name        = "SmokingIGW-${var.env}"
-    Environment = var.env
-  }
-}
-
-# Route Table
-resource "aws_route_table" "public_route_table" {
-  vpc_id = aws_vpc.smoking_vpc.id
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.smoking_igw.id
-  }
-  tags = {
-    Name        = "PublicRouteTable-${var.env}"
-    Environment = var.env
-  }
-}
-
-# Route Table Association
-resource "aws_route_table_association" "public_association" {
-  subnet_id      = aws_subnet.public_subnet.id
-  route_table_id = aws_route_table.public_route_table.id
-}
-
-#prueba1

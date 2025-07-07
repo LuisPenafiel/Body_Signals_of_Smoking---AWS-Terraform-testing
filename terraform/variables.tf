@@ -18,15 +18,17 @@
 
 # /terraform/variables.tf
 
+# /workspaces/Body_Signals_of_Smoking---AWS-Terraform-testing/terraform/variables.tf
 variable "AWS_REGION" {
   description = "AWS region"
   type        = string
+  default     = "eu-central-1"
 }
 
 variable "env" {
   description = "Environment name (e.g., dev, prod)"
   type        = string
-  default     = "dev"  # Opcional: un valor por defecto
+  default     = "dev"
 }
 
 variable "AWS_ACCESS_KEY_ID" {
@@ -39,4 +41,10 @@ variable "AWS_SECRET_ACCESS_KEY" {
   description = "Clave secreta de acceso de AWS"
   type        = string
   sensitive   = true
+}
+
+variable "enable_network_address_usage_metrics" {
+  description = "Enable network address usage metrics for the VPC"
+  type        = bool
+  default     = false  # Desactivado por defecto para evitar errores
 }
