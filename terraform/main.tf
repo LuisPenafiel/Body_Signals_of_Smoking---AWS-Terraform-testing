@@ -129,32 +129,7 @@ provider "aws" {
   region = var.AWS_REGION
 }
 
-# Variables (debes tenerlas en variables.tf)
-variable "AWS_REGION" {
-  description = "AWS region"
-  type        = string
-  default     = "eu-central-1"  # Valor por defecto para Frankfurt
-}
-
-variable "env" {
-  description = "Environment name (e.g., dev, prod)"
-  type        = string
-  default     = "dev"
-}
-
-variable "AWS_ACCESS_KEY_ID" {
-  description = "ID de clave de acceso de AWS"
-  type        = string
-  sensitive   = true
-}
-
-variable "AWS_SECRET_ACCESS_KEY" {
-  description = "Clave secreta de acceso de AWS"
-  type        = string
-  sensitive   = true
-}
-
-# VPC básica (los cimientos de tu casa)
+# VPC básica
 resource "aws_vpc" "smoking_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -165,7 +140,7 @@ resource "aws_vpc" "smoking_vpc" {
   }
 }
 
-# Subred pública (una habitación con acceso al exterior)
+# Subred pública
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.smoking_vpc.id
   cidr_block              = "10.0.1.0/24"
@@ -176,7 +151,7 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 
-# Puerta al mundo exterior (Internet Gateway)
+# Internet Gateway
 resource "aws_internet_gateway" "smoking_igw" {
   vpc_id = aws_vpc.smoking_vpc.id
   tags = {
@@ -185,7 +160,7 @@ resource "aws_internet_gateway" "smoking_igw" {
   }
 }
 
-# Ruta hacia la puerta (Route Table)
+# Route Table
 resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.smoking_vpc.id
   route {
@@ -198,7 +173,7 @@ resource "aws_route_table" "public_route_table" {
   }
 }
 
-# Conectar la habitación con la ruta (Association)
+# Route Table Association
 resource "aws_route_table_association" "public_association" {
   subnet_id      = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.public_route_table.id
