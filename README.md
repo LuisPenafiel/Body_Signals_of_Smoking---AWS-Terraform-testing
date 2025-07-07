@@ -255,7 +255,7 @@ This project is unlicensed and open for educational use. Please attribute the co
 
 
 markdown
-# Body Signals of Smoking Project
+# Body Signals of Smoking Project ---- AWS 2.0 Re-do profi
 
 ![AWS](https://img.shields.io/badge/AWS-%23FF9900.svg?style=for-the-badge&logo=amazon-aws&logoColor=white)
 ![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white)
@@ -291,15 +291,40 @@ A machine learning application for detecting smoking signals deployed on AWS usi
 
 Successful AWS identity verification:
 
+### Day 2 (Monday, July 7, 2025)
 
-### Upcoming Days
+✅ **Tasks Completed**:
+- **Terraform Cloud Setup**:
+  - Configured remote backend for state management
+  - Established VCS-driven workflow with GitHub integration
+  - Created dedicated workspace `body-signals-production`
 
-#### Day 2 (Monday, July 7, 2025)
-🔜 **Planned Tasks**:
-- Configure Terraform Cloud backend
-- Link GitHub repository to Terraform Cloud
-- Set up workspace variables
-- Test remote state management
+- **Security Configuration**:
+  - Set sensitive workspace variables:
+    ```terraform
+    AWS_ACCESS_KEY_ID     = (marked sensitive)
+    AWS_SECRET_ACCESS_KEY = (marked sensitive) 
+    AWS_REGION           = eu-central-1
+    ```
+  - Enabled auto-apply for non-production branches
+
+- **Infrastructure Testing**:
+  - Executed test configuration:
+    ```bash
+    terraform init -backend-config=backend.hcl
+    terraform validate
+    terraform plan -out=tfplan
+    ```
+  - Updated core configuration files:
+    - `main.tf` with AWS provider block
+    - `backend.tf` with remote backend configuration
+
+🔍 **Verification Steps**:
+1. Confirmed Terraform Cloud connection:
+   ```bash
+   Successfully configured the backend "terraform-cloud"! Terraform will automatically
+   use this backend unless the backend configuration changes.
+  ```
 
 #### Day 3 (Tuesday, July 8, 2025)
 🔜 **Planned Tasks**:
@@ -401,7 +426,7 @@ Clone the repository:
 
 ```bash
 git clone <repository-url>
-Open in GitHub Codespaces or configure local environment using the provided devcontainer.json
+Open in GitHub Codespaces or configure local environment using the provided devcontainer.json 
 ```
 
 ### Configure AWS credentials:

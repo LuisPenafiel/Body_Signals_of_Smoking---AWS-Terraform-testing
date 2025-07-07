@@ -114,7 +114,7 @@ terraform {
   backend "remote" {
     organization = "luis-terraform-learning"
     workspaces {
-      name = "body-signals-of-smoking"  
+      name = "body-signals-of-smoking"
     }
   }
   required_providers {
@@ -126,18 +126,80 @@ terraform {
 }
 
 provider "aws" {
-  region = var.AWS_REGION  # Cambiado de var.region a var.AWS_REGION
+  region = var.AWS_REGION
 }
 
-resource "random_id" "bucket_suffix" {
-  byte_length = 8
+# Variables (debes tenerlas en variables.tf)
+variable "AWS_REGION" {
+  description = "AWS region"
+  type        = string
+  default     = "eu-central-1"  # Valor por defecto para Frankfurt
 }
 
-resource "aws_s3_bucket" "smoking_data_bucket" {
-  bucket = "smoking-body-signals-data-${var.env}-${random_id.bucket_suffix.hex}"
+variable "env" {
+  description = "Environment name (e.g., dev, prod)"
+  type        = string
+  default     = "dev"
+}
+
+variable "AWS_ACCESS_KEY_ID" {
+  description = "ID de clave de acceso de AWS"
+  type        = string
+  sensitive   = true
+}
+
+variable "AWS_SECRET_ACCESS_KEY" {
+  description = "Clave secreta de acceso de AWS"
+  type        = string
+  sensitive   = true
+}
+
+# VPC básica (los cimientos de tu casa)
+resource "aws_vpc" "smoking_vpc" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
   tags = {
-    Name        = "Smoking Data Bucket"
+    Name        = "SmokingVPC-${var.env}"
     Environment = var.env
   }
 }
-# prueba5
+
+# Subred pública (una habitación con acceso al exterior)
+resource "aws_subnet" "public_subnet" {
+  vpc_id                  = aws_vpc.smoking_vpc.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+  tags = {
+    Name        = "PublicSubnet-${var.env}"
+    Environment = var.env
+  }
+}
+
+# Puerta al mundo exterior (Internet Gateway)
+resource "aws_internet_gateway" "smoking_igw" {
+  vpc_id = aws_vpc.smoking_vpc.id
+  tags = {
+    Name        = "SmokingIGW-${var.env}"
+    Environment = var.env
+  }
+}
+
+# Ruta hacia la puerta (Route Table)
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.smoking_vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.smoking_igw.id
+  }
+  tags = {
+    Name        = "PublicRouteTable-${var.env}"
+    Environment = var.env
+  }
+}
+
+# Conectar la habitación con la ruta (Association)
+resource "aws_route_table_association" "public_association" {
+  subnet_id      = aws_subnet.public_subnet.id
+  route_table_id = aws_route_table.public_route_table.id
+}
