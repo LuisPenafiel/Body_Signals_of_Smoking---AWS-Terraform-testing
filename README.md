@@ -326,19 +326,101 @@ Successful AWS identity verification:
    use this backend unless the backend configuration changes.
   ```
 
-#### Day 3 (Tuesday, July 8, 2025)
-🔜 **Planned Tasks**:
-- Adapt Terraform templates from reference architecture
-- Configure AWS provider settings
-- Initialize VPC module
-- Set up security groups
+# AWS VPC Infrastructure with Terraform (Free Tier Compatible)
+
+**Date**: Tuesday, July 8, 2025  
+**Environment**: Development (dev)  
+**Cloud Provider**: AWS (eu-central-1)  
+**Terraform Version**: Compatible with AWS Provider ~> 5.30.0  
+**State Management**: Terraform Cloud  
+
+## 📋 Project Overview
+Modular Terraform configuration for deploying Free Tier-compatible AWS infrastructure:
+- Virtual Private Cloud (VPC) with public/private subnets
+- Development-focused security groups
+- Cost-optimized architecture
+
+## ✅ Implemented Features
+
+### 🌐 Network Architecture
+- **VPC Module**: `terraform-aws-modules/vpc/aws` v5.8.0
+  - CIDR: `10.0.0.0/16`
+  - Public Subnets: 
+    - `10.0.101.0/24` (eu-central-1a)
+    - `10.0.102.0/24` (eu-central-1b)
+  - Private Subnets:
+    - `10.0.1.0/24` (eu-central-1a)
+    - `10.0.2.0/24` (eu-central-1b)
+  - Cost-Saving Measures:
+    - NAT Gateway: Disabled
+    - VPN Gateway: Disabled
+    - `enable_network_address_usage_metrics`: false
+
+### 🔒 Security Configuration
+- **Security Group**: `smoking-app-sg-dev`
+  - Ingress Rules:
+    - HTTP (port 80)
+    - SSH (port 22)
+  - Egress: Unrestricted
+  - Tags: `Environment = dev`
+
+## ⚙️ Technical Configuration
+```hcl
+provider "aws" {
+  region     = "eu-central-1"
+  access_key = var.AWS_ACCESS_KEY_ID      # Managed in TF Cloud
+  secret_key = var.AWS_SECRET_ACCESS_KEY  # Managed in TF Cloud
+  version    = "~> 5.30.0"
+}
+```
+
+# 🚀 Deployment Process
+Initialization:
+
+```bash
+terraform init -upgrade
+#Validation:
+```
+```bash
+terraform validate
+#Planning:
+```
+```bash
+terraform plan
+#Apply (via Terraform Cloud VCS workflow)
+```
+# ✔️ Verification
+✅ Configuration validation passed
+
+✅ Remote state initialized successfully
+
+✅ Plan confirms Free Tier compliance:
+
+No NAT/VPN gateway costs
+
+Minimal resource footprint
+
+# 📝 Notes
+All configurations designed to stay within AWS Free Tier limits
+
+Resolved version compatibility issues through provider/module upgrades
+
+Sensitive credentials managed via Terraform Cloud variables
+
+
 
 #### Day 4 (Wednesday, July 9, 2025)
-🔜 **Planned Tasks**:
+
 - Implement basic Streamlit application skeleton
 - Add data ingestion functionality
 - Configure basic visualization
 - Set up project structure
+  
+  # 📝 Notes:
+
+- Reused a pre-existing Streamlit application developed months ago, successfully deployed on Render, and adapted for Codespaces and AWS integration.
+- Optimized for Free Tier by delaying EC2 deployment until Day 7, keeping development local.
+- No critical errors encountered; ready for modularization in Day 5.
 
 #### Day 5 (Thursday, July 10, 2025)
 🔜 **Planned Tasks**:
