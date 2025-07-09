@@ -7,6 +7,7 @@ import logging
 
 class DatabaseManager:
     def __init__(self, is_aws, is_lambda):
+        """Inicializa la conexión a la base de datos según el entorno."""
         self.is_aws = is_aws
         self.is_lambda = is_lambda
         self.local_db_path = '/tmp/predictions.db' if is_aws else 'predictions.db'
@@ -25,7 +26,8 @@ class DatabaseManager:
         except ClientError as e:
             if e.response['Error']['Code'] == '404':
                 self.create_db()
-                self.upload_to_s3()
+                if not self.is_lambda:  # No subir a S3 en Lambda
+                    self.upload_to_s3()
             else:
                 raise
     
@@ -45,8 +47,8 @@ class DatabaseManager:
         conn.commit()
         conn.close()
     
-    # FIX: Add is_aws parameter to match the call
     def save_prediction(self, gender, hemoglobin, prediction, is_aws):
+        """Guarda una predicción en la base de datos."""
         conn = sqlite3.connect(self.local_db_path)
         c = conn.cursor()
         c.execute("INSERT INTO predictions (gender, hemoglobin, prediction) VALUES (?, ?, ?)", 
@@ -54,8 +56,8 @@ class DatabaseManager:
         conn.commit()
         conn.close()
         
-        # Upload to S3 if we're in AWS environment
-        if is_aws:
+        # Upload to S3 only if AWS and not Lambda
+        if is_aws and not self.is_lambda:
             self.upload_to_s3()
     
     def upload_to_s3(self):
@@ -69,5 +71,5 @@ class DatabaseManager:
         return df
     
     def close(self):
-        if self.is_aws:
+        if self.is_aws and not self.is_lambda:
             self.upload_to_s3()
