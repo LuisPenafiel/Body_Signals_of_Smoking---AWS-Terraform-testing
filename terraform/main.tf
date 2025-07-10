@@ -182,3 +182,40 @@ resource "aws_security_group" "smoking_sg" {
     Environment = var.env
   }
 }
+# S3 Bucket for app files and DB
+resource "aws_s3_bucket" "smoking_data_dev" {
+  bucket = "smoking-body-signals-data-dev"
+  tags = {
+    Name        = "Smoking Body Signals Data Dev"
+    Environment = var.env
+  }
+}
+
+# Deshabilitar Block Public Access para permitir policy
+resource "aws_s3_bucket_public_access_block" "smoking_data_dev_block" {
+  bucket = aws_s3_bucket.smoking_data_dev.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+# Policy para acceso público de lectura (GetObject)
+resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
+  bucket = aws_s3_bucket.smoking_data_dev.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.smoking_data_dev.arn}/*"
+      }
+    ]
+  })
+
+  depends_on = [aws_s3_bucket_public_access_block.smoking_data_dev_block]
+}
