@@ -273,7 +273,7 @@ A machine learning application for detecting smoking signals deployed on AWS usi
 
 ## Daily Progress Log
 
-### Day 1 (Saturday, July 5, 2025)
+### Day 1 
 ✅ **Tasks Completed**:
 - Set up Codespaces environment with custom `devcontainer.json`
 - Configured `post-create.sh` to auto-install:
@@ -291,7 +291,7 @@ A machine learning application for detecting smoking signals deployed on AWS usi
 
 Successful AWS identity verification:
 
-### Day 2 (Monday, July 7, 2025)
+### Day 2 
 
 ✅ **Tasks Completed**:
 - **Terraform Cloud Setup**:
@@ -324,9 +324,12 @@ Successful AWS identity verification:
    ```bash
    Successfully configured the backend "terraform-cloud"! Terraform will automatically
    use this backend unless the backend configuration changes.
+   
   ```
 
-# AWS VPC Infrastructure with Terraform (Free Tier Compatible)
+### Day 3 progress 
+
+## AWS VPC Infrastructure with Terraform (Free Tier Compatible)
 
 **Date**: Tuesday, July 8, 2025  
 **Environment**: Development (dev)  
@@ -374,7 +377,7 @@ provider "aws" {
 }
 ```
 
-# 🚀 Deployment Process
+#### 🚀 Deployment Process
 Initialization:
 
 ```bash
@@ -389,7 +392,7 @@ terraform validate
 terraform plan
 #Apply (via Terraform Cloud VCS workflow)
 ```
-# ✔️ Verification
+#### ✔️ Verification
 ✅ Configuration validation passed
 
 ✅ Remote state initialized successfully
@@ -400,7 +403,7 @@ No NAT/VPN gateway costs
 
 Minimal resource footprint
 
-# 📝 Notes
+#### 📝 Notes
 All configurations designed to stay within AWS Free Tier limits
 
 Resolved version compatibility issues through provider/module upgrades
@@ -409,14 +412,14 @@ Sensitive credentials managed via Terraform Cloud variables
 
 
 
-#### Day 4 (Wednesday, July 9, 2025)
+### Day 4 (Wednesday, July 9, 2025)
 
 - Implement basic Streamlit application skeleton
 - Add data ingestion functionality
 - Configure basic visualization
 - Set up project structure
   
-  # 📝 Notes:
+  ### 📝 Notes:
 
 - Reused a pre-existing Streamlit application developed months ago, successfully deployed on Render, and adapted for Codespaces and AWS integration.
 - Optimized for Free Tier by delaying EC2 deployment until Day 7, keeping development local.

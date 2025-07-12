@@ -219,3 +219,28 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
 
   depends_on = [aws_s3_bucket_public_access_block.smoking_data_dev_block]
 }
+
+# SSH Key Pair (genera .pem automáticamente, pero descarga manual desde AWS)
+resource "aws_key_pair" "smoking_key" {
+  key_name   = var.key_name
+  public_key = file("~/.ssh/id_rsa.pub")  # Usa tu clave pública local; genera si no tienes con ssh-keygen
+}
+
+# EC2 Instance
+resource "aws_instance" "smoking_app_dev" {
+  ami           = "ami-0c55b159cbfafe1f0"  # AMI Ubuntu 22.04 eu-central-1 (verifica actual con web_search si necesario)
+  instance_type = var.instance_type
+  key_name      = aws_key_pair.smoking_key.key_name
+  vpc_security_group_ids = [aws_security_group.smoking_sg.id]  # Usa tu SG existente
+  subnet_id     = module.vpc.public_subnets[0]  # Subred pública para acceso
+
+  tags = {
+    Name        = "SmokingAppDev"
+    Environment = var.env
+  }
+}
+
+# Output para DNS público
+output "ec2_public_dns" {
+  value = aws_instance.smoking_app_dev.public_dns
+}
