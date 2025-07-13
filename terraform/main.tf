@@ -110,6 +110,8 @@
 # }
 # _____________________________________________________________________
 
+# main.tf
+
 terraform {
   backend "remote" {
     organization = "luis-terraform-learning"
@@ -148,6 +150,7 @@ module "vpc" {
     Environment = var.env
   }
 }
+
 resource "aws_security_group" "smoking_sg" {
   name        = "smoking-app-sg-${var.env}"
   description = "Security group for Smoking App"
@@ -169,6 +172,14 @@ resource "aws_security_group" "smoking_sg" {
     cidr_blocks = ["0.0.0.0/0"]  # Limita en producción a tu IP
   }
 
+  # Permitir Streamlit (puerto 8501, para pruebas)
+  ingress {
+    from_port   = 8501
+    to_port     = 8501
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]  # Para pruebas; limita a tu IP en prod
+  }
+
   # Permitir todo el tráfico saliente
   egress {
     from_port   = 0
@@ -182,6 +193,7 @@ resource "aws_security_group" "smoking_sg" {
     Environment = var.env
   }
 }
+
 # S3 Bucket for app files and DB
 resource "aws_s3_bucket" "smoking_data_dev" {
   bucket = "smoking-body-signals-data-dev"
@@ -223,12 +235,12 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
 # SSH Key Pair (genera .pem automáticamente, pero descarga manual desde AWS)
 resource "aws_key_pair" "smoking_key" {
   key_name   = var.key_name
-  public_key = file("~/.ssh/id_rsa.pub")  # Usa tu clave pública local; genera si no tienes con ssh-keygen
+  public_key = var.ec2_public_key  # Usa variable de TF Cloud
 }
 
 # EC2 Instance
 resource "aws_instance" "smoking_app_dev" {
-  ami           = "ami-0c55b159cbfafe1f0"  # AMI Ubuntu 22.04 eu-central-1 (verifica actual con web_search si necesario)
+  ami           = "ami-0caef02a472ca75c5"  # AMI Ubuntu 22.04 eu-central-1 (verifica actual si necesario)
   instance_type = var.instance_type
   key_name      = aws_key_pair.smoking_key.key_name
   vpc_security_group_ids = [aws_security_group.smoking_sg.id]  # Usa tu SG existente

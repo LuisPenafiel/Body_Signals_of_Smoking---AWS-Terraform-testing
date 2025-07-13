@@ -19,6 +19,8 @@
 # /terraform/variables.tf
 
 # /workspaces/Body_Signals_of_Smoking---AWS-Terraform-testing/terraform/variables.tf
+# variables.tf
+
 variable "AWS_REGION" {
   description = "AWS region"
   type        = string
@@ -59,4 +61,9 @@ variable "key_name" {
   description = "SSH key name"
   type        = string
   default     = "smoking-ec2-key"
+}
+
+variable "ec2_public_key" {
+  description = "Public SSH key for EC2"
+  type        = string
 }
