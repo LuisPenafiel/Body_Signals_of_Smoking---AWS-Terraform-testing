@@ -240,11 +240,11 @@ resource "aws_key_pair" "smoking_key" {
 
 # EC2 Instance
 resource "aws_instance" "smoking_app_dev" {
-  ami           = "ami-05deff6f8bd13eeeb"  # Ubuntu 22.04 LTS eu-central-1 (verificada)
+  ami           = "ami-0dc33c9c954b3f073"  # AMI Ubuntu 22.04 LTS en eu-central-1 (corregida y verificada)
   instance_type = var.instance_type
   key_name      = aws_key_pair.smoking_key.key_name
-  vpc_security_group_ids = [aws_security_group.smoking_sg.id]
-  subnet_id     = module.vpc.public_subnets[0]
+  vpc_security_group_ids = [aws_security_group.smoking_sg.id]  # Usa tu SG existente
+  subnet_id     = module.vpc.public_subnets[0]  # Subred pública para acceso
 
   user_data = base64encode(<<EOF
 #!/bin/bash
