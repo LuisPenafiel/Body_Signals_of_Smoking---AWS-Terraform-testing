@@ -267,3 +267,5 @@ EOF
 output "ec2_public_dns" {
   value = aws_instance.smoking_app_dev.public_dns
 }
+
+#prueba
