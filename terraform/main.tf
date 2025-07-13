@@ -238,13 +238,13 @@ resource "aws_key_pair" "smoking_key" {
   public_key = var.ec2_public_key  # Usa variable de TF Cloud
 }
 
-# EC2 Instance
 resource "aws_instance" "smoking_app_dev" {
-  ami           = "ami-0dc33c9c954b3f073"  # AMI Ubuntu 22.04 LTS en eu-central-1 (corregida y verificada)
+  ami           = "ami-0dc33c9c954b3f073"  # AMI Ubuntu 22.04 LTS en eu-central-1 (de tu CLI)
   instance_type = var.instance_type
   key_name      = aws_key_pair.smoking_key.key_name
-  vpc_security_group_ids = [aws_security_group.smoking_sg.id]  # Usa tu SG existente
-  subnet_id     = module.vpc.public_subnets[0]  # Subred pública para acceso
+  vpc_security_group_ids = [aws_security_group.smoking_sg.id]
+  subnet_id     = module.vpc.public_subnets[0]
+  associate_public_ip_address = true  # Añadido para public DNS/IP
 
   user_data = base64encode(<<EOF
 #!/bin/bash
