@@ -240,11 +240,22 @@ resource "aws_key_pair" "smoking_key" {
 
 # EC2 Instance
 resource "aws_instance" "smoking_app_dev" {
-  ami           = "ami-0caef02a472ca75c5"  # AMI Ubuntu 22.04 eu-central-1 (verifica actual si necesario)
+  ami           = "ami-05deff6f8bd13eeeb"  # Ubuntu 22.04 LTS eu-central-1 (verificada)
   instance_type = var.instance_type
   key_name      = aws_key_pair.smoking_key.key_name
-  vpc_security_group_ids = [aws_security_group.smoking_sg.id]  # Usa tu SG existente
-  subnet_id     = module.vpc.public_subnets[0]  # Subred pública para acceso
+  vpc_security_group_ids = [aws_security_group.smoking_sg.id]
+  subnet_id     = module.vpc.public_subnets[0]
+
+  user_data = base64encode(<<EOF
+#!/bin/bash
+sudo apt update -y
+sudo apt install python3-pip git -y
+pip3 install streamlit pandas scikit-learn boto3 pillow
+git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git
+cd Body_Signals_of_Smoking---AWS-Terraform-testing/src
+nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
+EOF
+  )
 
   tags = {
     Name        = "SmokingAppDev"
