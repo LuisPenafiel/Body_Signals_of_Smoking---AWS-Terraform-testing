@@ -289,7 +289,7 @@ resource "aws_iam_role" "ec2_s3_role" {
 
 resource "aws_iam_role_policy_attachment" "ec2_s3_attach" {
   role       = aws_iam_role.ec2_s3_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"  # Change to FullAccess for read/write
 }
 
 resource "aws_iam_instance_profile" "ec2_s3_profile" {
