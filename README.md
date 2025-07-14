@@ -325,11 +325,11 @@ Successful AWS identity verification:
 
 🔍 **Verification Steps**:
 1. Confirmed Terraform Cloud connection:
-   ```bash
+   
    Successfully configured the backend "terraform-cloud"! Terraform will automatically
    use this backend unless the backend configuration changes.
    
-  ```
+ 
 
 ### Day 3 progress 
 
@@ -464,28 +464,66 @@ Current Status
 🟢 Fully functional for local testing
 ✅ No critical errors remaining
 
-#### Day 6 (Sunday, July 13, 2025)
-✅ Tasks Completed:
+# Day 6: AWS Infrastructure & EC2 Deployment  
+**Thursday, July 10, 2025**  
 
-Configured S3 bucket, access block, and policy in Terraform
-Resolved infrastructure drift with resource imports and state management
-Deployed EC2 instance with Ubuntu 22.04 LTS and auto-setup user data
-Established SSH connection to EC2
-Installed dependencies and cloned repository on EC2
-Executed Streamlit application with port management
-Troubleshot AMI validation, SSH permissions, port conflicts, and credential issues
-📝 Notes:
+## ✅ **Tasks Completed**  
 
-Automated S3 file uploads via bash script
-Achieved application accessibility via public DNS
-Maintained Free Tier compliance
-Overcame multiple deployment challenges including deprecated functions and credential management
-🔜 Planned Tasks:
+### **Infrastructure (Terraform)**  
+- **S3 Configuration**:  
+  - Set up bucket with public access block and policy for file/DB storage.  
+  - Resolved drift via `terraform import` for bucket, policy, and access block.  
+- **EC2 Deployment**:  
+  - Launched Ubuntu 22.04 LTS instance with:  
+    - SSH key pair (`smoking-ec2-key`).  
+    - User data script for auto-setup.  
 
-Finalize logging and error handling
-Set up monitoring alerts
-Configure application insights
+### **Automation & Deployment**  
+- **S3 Uploads**:  
+  - Automated model/scaler/image uploads via `s3/upload_to_s3.sh` (fixed with `chmod +x`).  
+- **EC2 Setup**:  
+  - Installed dependencies:  
+    ```bash
+    Python, pip, git, Streamlit, pandas, scikit-learn, boto3, pillow
+    ```  
+  - Cloned repo and launched Streamlit app on port `8501`.  
+  - Configured AWS detection with `IS_AWS=True` environment variable.  
 
+---
+
+## 📝 **Notes**  
+- **Access**: App live at EC2 public DNS (`http://<DNS>:8501`), S3 downloads functional.  
+- **Cost**: All resources within AWS Free Tier (no charges incurred).  
+- **Debugging Highlights**:  
+  - Fixed `Permission denied` for S3 uploads via IAM role (`AmazonS3FullAccess`).  
+  - Resolved deprecated Streamlit function (`st.experimental_rerun()` → `st.rerun()`).  
+
+---
+
+## 🚨 **Challenges & Solutions**  
+
+| **Challenge**                  | **Solution**                                                                 |  
+|--------------------------------|-----------------------------------------------------------------------------|  
+| **S3 BucketAlreadyExists**     | Imported resources to Terraform state, removed duplicates with `state rm`.  |  
+| **SSH "Permission denied"**    | Set key permissions (`chmod 400 ~/.ssh/smoking-ec2-key`).                   |  
+| **Streamlit Port 8501 in Use** | Killed existing process (`ps aux \| grep streamlit` → `kill -9 PID`).       |  
+| **Boto3 Credential Errors**    | Configured `AWS_REGION=eu-central-1` + IAM role for S3 access.              |  
+| **AMI Validation Failed**      | Updated `main.tf` with correct AMI ID (via `aws ec2 describe-images`).     |  
+
+---
+
+## **Current Status**  
+🟢 **Deployment Successful**  
+- Predictions operational with visual feedback.  
+- No active errors after debugging.  
+
+---
+
+## 🔜 **Next Steps**  
+- **Security**: Add HTTPS encryption.  
+- **Monitoring**: Set up CloudWatch alerts.  
+- **Optimization**: Enhance user data script for fault tolerance.  
+- **Logging**: Implement detailed error tracking.  
 #### Day 7 (Saturday, July 12, 2025)
 🔜 **Planned Tasks**:
 - Create EC2 deployment package
