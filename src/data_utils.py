@@ -39,7 +39,7 @@ def ensure_files(base_path, is_aws, is_lambda, bucket_name='smoking-body-signals
                     st.stop()
     except Exception as e:
         st.error(f"File handling error: {e}")
-        st.experimental_rerun()
+        st.rerun()
 
 def load_model_and_scaler(model_path, scaler_path):
     """Carga el modelo y el escalador desde los archivos especificados."""

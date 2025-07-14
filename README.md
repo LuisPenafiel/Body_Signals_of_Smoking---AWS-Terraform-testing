@@ -267,9 +267,13 @@ A machine learning application for detecting smoking signals deployed on AWS usi
 
 **Goal**: Build and deploy a Streamlit application with machine learning models on AWS, managed with Terraform.
 
-**Start Date**: July 5, 2025  
-**Duration**: 14 days  
-**Status**: In Progress 🚧
+Modular Terraform configuration for deploying Free Tier-compatible AWS infrastructure, integrated with a Streamlit application for smoking behavior prediction using machine learning:
+
+Virtual Private Cloud (VPC) with public/private subnets
+Development-focused security groups
+S3 bucket for file and database storage
+EC2 instance for application deployment
+Cost-optimized architecture with auto-setup scripts
 
 ## Daily Progress Log
 
@@ -460,12 +464,27 @@ Current Status
 🟢 Fully functional for local testing
 ✅ No critical errors remaining
 
-#### Day 6 (Friday, July 11, 2025)
-🔜 **Planned Tasks**:
-- Implement comprehensive logging
-- Add error handling middleware
-- Set up monitoring alerts
-- Configure application insights
+#### Day 6 (Sunday, July 13, 2025)
+✅ Tasks Completed:
+
+Configured S3 bucket, access block, and policy in Terraform
+Resolved infrastructure drift with resource imports and state management
+Deployed EC2 instance with Ubuntu 22.04 LTS and auto-setup user data
+Established SSH connection to EC2
+Installed dependencies and cloned repository on EC2
+Executed Streamlit application with port management
+Troubleshot AMI validation, SSH permissions, port conflicts, and credential issues
+📝 Notes:
+
+Automated S3 file uploads via bash script
+Achieved application accessibility via public DNS
+Maintained Free Tier compliance
+Overcame multiple deployment challenges including deprecated functions and credential management
+🔜 Planned Tasks:
+
+Finalize logging and error handling
+Set up monitoring alerts
+Configure application insights
 
 #### Day 7 (Saturday, July 12, 2025)
 🔜 **Planned Tasks**:
