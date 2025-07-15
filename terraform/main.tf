@@ -250,7 +250,7 @@ resource "aws_instance" "smoking_app_dev" {
 user_data = base64encode(<<EOF
 #!/bin/bash
 sudo apt update -y
-sudo apt install python3-pip git -y
+sudo apt install python3-pip git awscli -y
 cd /home/ubuntu
 git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git
 cd Body_Signals_of_Smoking---AWS-Terraform-testing
@@ -258,6 +258,9 @@ pip3 install -r requirements.txt
 cd src
 export AWS_REGION=eu-central-1
 nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "smoking-ami-v1" --description "Custom AMI for Smoking App with deps" --no-reboot --output text)
+echo "New AMI ID: $AMI_ID" > /home/ubuntu/ami_id.txt
 EOF
 )
 
