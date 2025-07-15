@@ -245,23 +245,20 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true # Añadido para public DNS/IP
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-  user_data = base64encode(<<EOF
-  #!/bin/bash
-  sudo apt update -y
-  sudo apt install python3-pip git awscli -y
-  cd /home/ubuntu
-  git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git
-  cd Body_Signals_of_Smoking---AWS-Terraform-testing
-  pip3 install -r requirements.txt
-  cd src
-  export AWS_REGION=eu-central-1
-  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
-  # AMI creation commented out since ID is already generated
-  # INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-  # AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "smoking-ami-v1" --description "Custom AMI for Smoking App with deps" --no-reboot --output text)
-  # echo "New AMI ID: $AMI_ID" > /home/ubuntu/ami_id.txt
-  EOF
-  )
+user_data = base64encode(<<EOF
+#!/bin/bash
+sudo apt update -y
+sudo apt install python3-pip git awscli -y
+cd /home/ubuntu
+mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
+aws s3 cp s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --recursive
+cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
+pip3 install -r src/requirements.txt
+cd src
+export AWS_REGION=eu-central-1
+nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
+EOF
+)
 
   tags = {
     Name        = "SmokingAppDev"
