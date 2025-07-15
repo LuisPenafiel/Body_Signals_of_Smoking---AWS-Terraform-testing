@@ -86,3 +86,5 @@ variable "ec2_public_key" {
     error_message = "The ec2_public_key must be a valid SSH public key starting with 'ssh-rsa'."
   }
 }
+
+#cambio en public ec2 key
