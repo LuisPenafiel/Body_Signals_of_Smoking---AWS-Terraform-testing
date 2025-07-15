@@ -122,7 +122,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.30.0"  # Upgraded to 5.x series
+      version = "~> 5.30.0" # Upgraded to 5.x series
     }
   }
 }
@@ -133,7 +133,7 @@ provider "aws" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.8.0"  # Keep this version
+  version = "5.8.0" # Keep this version
 
   name = "smoking-vpc"
   cidr = "10.0.0.0/16"
@@ -142,8 +142,8 @@ module "vpc" {
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
 
-  enable_nat_gateway     = false
-  enable_vpn_gateway     = false
+  enable_nat_gateway                   = false
+  enable_vpn_gateway                   = false
   enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
 
   tags = {
@@ -161,7 +161,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Para pruebas; limita en producción
+    cidr_blocks = ["0.0.0.0/0"] # Para pruebas; limita en producción
   }
 
   # Permitir SSH (puerto 22, solo para pruebas)
@@ -169,7 +169,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Limita en producción a tu IP
+    cidr_blocks = ["0.0.0.0/0"] # Limita en producción a tu IP
   }
 
   # Permitir Streamlit (puerto 8501, para pruebas)
@@ -177,7 +177,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 8501
     to_port     = 8501
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Para pruebas; limita a tu IP en prod
+    cidr_blocks = ["0.0.0.0/0"] # Para pruebas; limita a tu IP en prod
   }
 
   # Permitir todo el tráfico saliente
@@ -235,25 +235,27 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
 # SSH Key Pair (genera .pem automáticamente, pero descarga manual desde AWS)
 resource "aws_key_pair" "smoking_key" {
   key_name   = var.key_name
-  public_key = var.ec2_public_key  # Usa variable de TF Cloud
+  public_key = var.ec2_public_key # Usa variable de TF Cloud
 }
 
 resource "aws_instance" "smoking_app_dev" {
-  ami           = "ami-0dc33c9c954b3f073"  # AMI Ubuntu 22.04 LTS en eu-central-1 (de tu CLI)
-  instance_type = var.instance_type
-  key_name      = aws_key_pair.smoking_key.key_name
-  vpc_security_group_ids = [aws_security_group.smoking_sg.id]
-  subnet_id     = module.vpc.public_subnets[0]
-  associate_public_ip_address = true  # Añadido para public DNS/IP
-  iam_instance_profile = aws_iam_instance_profile.ec2_s3_profile.name
+  ami                         = "ami-0dc33c9c954b3f073" # AMI Ubuntu 22.04 LTS en eu-central-1 (de tu CLI)
+  instance_type               = var.instance_type
+  key_name                    = aws_key_pair.smoking_key.key_name
+  vpc_security_group_ids      = [aws_security_group.smoking_sg.id]
+  subnet_id                   = module.vpc.public_subnets[0]
+  associate_public_ip_address = true # Añadido para public DNS/IP
+  iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
   user_data = base64encode(<<EOF
 #!/bin/bash
 sudo apt update -y
 sudo apt install python3-pip git -y
-pip3 install streamlit pandas scikit-learn boto3 pillow
+cd /home/ubuntu
 git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git
 cd Body_Signals_of_Smoking---AWS-Terraform-testing/src
+pip3 install -r requirements.txt
+export AWS_REGION=eu-central-1
 nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
 EOF
   )
@@ -289,7 +291,7 @@ resource "aws_iam_role" "ec2_s3_role" {
 
 resource "aws_iam_role_policy_attachment" "ec2_s3_attach" {
   role       = aws_iam_role.ec2_s3_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"  # Change to FullAccess for read/write
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess" # Change to FullAccess for read/write
 }
 
 resource "aws_iam_instance_profile" "ec2_s3_profile" {

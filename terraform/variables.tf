@@ -48,7 +48,7 @@ variable "AWS_SECRET_ACCESS_KEY" {
 variable "enable_network_address_usage_metrics" {
   description = "Enable network address usage metrics for the VPC"
   type        = bool
-  default     = false  # Desactivado por defecto para evitar errores
+  default     = false # Desactivado por defecto para evitar errores
 }
 
 variable "instance_type" {
