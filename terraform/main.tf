@@ -110,8 +110,6 @@
 # }
 # _____________________________________________________________________
 
-# main.tf
-
 terraform {
   backend "remote" {
     organization = "luis-terraform-learning"
@@ -239,7 +237,7 @@ resource "aws_key_pair" "smoking_key" {
 }
 
 resource "aws_instance" "smoking_app_dev" {
-  ami                         = "ami-0dc33c9c954b3f073" # AMI Ubuntu 22.04 LTS en eu-central-1 (de tu CLI)
+  ami                         = "ami-05b91990f4b2d588f" # AMI custom generada
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.smoking_key.key_name
   vpc_security_group_ids      = [aws_security_group.smoking_sg.id]
@@ -247,26 +245,43 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true # Añadido para public DNS/IP
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-user_data = base64encode(<<EOF
-#!/bin/bash
-sudo apt update -y
-sudo apt install python3-pip git awscli -y
-cd /home/ubuntu
-git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git
-cd Body_Signals_of_Smoking---AWS-Terraform-testing
-pip3 install -r requirements.txt
-cd src
-export AWS_REGION=eu-central-1
-nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
-INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "smoking-ami-v1" --description "Custom AMI for Smoking App with deps" --no-reboot --output text)
-echo "New AMI ID: $AMI_ID" > /home/ubuntu/ami_id.txt
-EOF
-)
+  user_data = base64encode(<<EOF
+  #!/bin/bash
+  sudo apt update -y
+  sudo apt install python3-pip git awscli -y
+  cd /home/ubuntu
+  git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git
+  cd Body_Signals_of_Smoking---AWS-Terraform-testing
+  pip3 install -r requirements.txt
+  cd src
+  export AWS_REGION=eu-central-1
+  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
+  # AMI creation commented out since ID is already generated
+  # INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+  # AMI_ID=$(aws ec2 create-image --instance-id $INSTANCE_ID --name "smoking-ami-v1" --description "Custom AMI for Smoking App with deps" --no-reboot --output text)
+  # echo "New AMI ID: $AMI_ID" > /home/ubuntu/ami_id.txt
+  EOF
+  )
 
   tags = {
     Name        = "SmokingAppDev"
     Environment = var.env
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "cpu_alarm" {
+  alarm_name          = "ec2-cpu-alarm"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"  # 2 períodos de 120s
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"  # 2 minutos
+  statistic           = "Average"
+  threshold           = "80"  # % CPU
+  alarm_description   = "This metric monitors ec2 cpu utilization exceeding 80%"
+  alarm_actions       = []  # Sin acción (gratis), añade SNS si quieres email
+  dimensions = {
+    InstanceId = aws_instance.smoking_app_dev.id
   }
 }
 
@@ -275,7 +290,7 @@ output "ec2_public_dns" {
   value = aws_instance.smoking_app_dev.public_dns
 }
 
-# IAM Role for EC2 to read S3
+# IAM Role for EC2 to read S3 and create AMI
 resource "aws_iam_role" "ec2_s3_role" {
   name = "ec2_s3_read_role"
 
@@ -293,9 +308,19 @@ resource "aws_iam_role" "ec2_s3_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_s3_attach" {
-  role       = aws_iam_role.ec2_s3_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess" # Change to FullAccess for read/write
+resource "aws_iam_role_policy" "ec2_s3_extended" {
+  name   = "ec2_s3_extended_policy"
+  role   = aws_iam_role.ec2_s3_role.name
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3:*", "ec2:CreateImage"]
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 resource "aws_iam_instance_profile" "ec2_s3_profile" {
