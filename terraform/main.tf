@@ -251,12 +251,13 @@ sudo apt update -y
 sudo apt install python3-pip git awscli -y
 cd /home/ubuntu
 mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
-aws s3 cp s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --recursive
+aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/
 cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
 pip3 install -r src/requirements.txt
 cd src
 export AWS_REGION=eu-central-1
-nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 &
+nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 > /home/ubuntu/streamlit.log 2>&1 &
+echo "Streamlit started at $(date)" >> /home/ubuntu/streamlit.log
 EOF
 )
 
