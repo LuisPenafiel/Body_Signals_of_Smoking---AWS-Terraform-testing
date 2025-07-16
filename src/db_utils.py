@@ -10,11 +10,11 @@ class DatabaseManager:
         """Inicializa la conexión a la base de datos según el entorno."""
         self.is_aws = is_aws
         self.is_lambda = is_lambda
-        self.local_db_path = '/tmp/predictions.db' if is_aws else 'predictions.db'
+        self.local_db_path = '/home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/predictions.db' if is_aws and not is_lambda else '/tmp/predictions.db' if is_aws and is_lambda else 'predictions.db'
         
         if is_aws:
             self.s3_bucket = 'smoking-body-signals-data-dev'
-            self.s3_key = 'predictions.db'
+            self.s3_key = 'src/predictions.db'
             self.setup_aws_db()
         else:
             self.setup_local_db()

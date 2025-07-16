@@ -245,22 +245,29 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true # Mantener por compatibilidad, pero EIP lo reemplazará
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-user_data = base64encode(<<EOF
-#!/bin/bash
-sudo apt update -y
-sudo apt install python3-pip git awscli -y
-cd /home/ubuntu
-mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
-aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet
-if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
-cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
-pip3 install -r src/requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
-cd src
-export AWS_REGION=eu-central-1
-nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 > /home/ubuntu/streamlit.log 2>&1 &
-echo "Streamlit started at $(date) with PID $$" >> /home/ubuntu/streamlit.log
-EOF
-)
+  user_data = base64encode(<<EOF
+  #!/bin/bash
+  sudo apt update -y
+  sudo apt install python3-pip git awscli net-tools -y  # Añadido net-tools para netstat
+  cd /home/ubuntu
+  mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
+  aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet
+  if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
+  if [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/app.py ] || \
+     [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/scaler.pkl ] || \
+     [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/random_forest_model_Default.pkl ]; then
+    echo "Critical files missing at $(date): $(ls /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/)" >> /home/ubuntu/sync_error.log
+    exit 1
+  fi
+  cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
+  pip3 install -r src/requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
+  cd src
+  export AWS_REGION=eu-central-1
+  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false > /home/ubuntu/streamlit.log 2>&1 &
+  echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
+  netstat -tuln >> /home/ubuntu/network_check.log 2>&1  # Registra estado del puerto
+  EOF
+  )
 
   tags = {
     Name        = "SmokingAppDev"
@@ -271,7 +278,7 @@ EOF
 # Elastic IP para dirección fija
 resource "aws_eip" "smoking_eip" {
   instance = aws_instance.smoking_app_dev.id
-  domain = "vpc"
+  domain   = "vpc"
   tags = {
     Name        = "SmokingAppEIP"
     Environment = var.env
@@ -282,11 +289,6 @@ resource "aws_eip" "smoking_eip" {
 output "ec2_public_ip" {
   value = aws_eip.smoking_eip.public_ip
 }
-
-# Eliminar output de DNS dinámico (opcional, si prefieres IP fija)
-# output "ec2_public_dns" {
-#   value = aws_instance.smoking_app_dev.public_dns
-# }
 
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm" {
   alarm_name          = "ec2-cpu-alarm"

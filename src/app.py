@@ -12,7 +12,7 @@ IS_LAMBDA = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
 # --- S3 and File Configuration ---
 BUCKET_NAME = 'smoking-body-signals-data-dev'
 REGION_NAME = 'eu-central-1'
-BASE_PATH = '/tmp' if IS_AWS else '/workspaces/Body_Signals_of_Smoking---AWS-Terraform-testing/src'
+BASE_PATH = '/home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src' if IS_AWS and not IS_LAMBDA else '/tmp' if IS_AWS and IS_LAMBDA else '/workspaces/Body_Signals_of_Smoking---AWS-Terraform-testing/src'
 paths = get_file_paths(BASE_PATH)
 
 # --- Sections ---
@@ -273,8 +273,7 @@ def main():
     elif selection == "Relevant Data":
         data()
     elif selection == "Prediction":
-        # FIX: Pass IS_AWS as additional argument
-        prediction(db, model, scaler, IS_AWS)  # <-- IMPORTANT CHANGE HERE
+        prediction(db, model, scaler, IS_AWS)  # Usar IS_AWS pasado como argumento
     elif selection == "Limitations":
         limitations_future_improvement()
 
