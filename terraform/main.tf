@@ -230,6 +230,38 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
   depends_on = [aws_s3_bucket_public_access_block.smoking_data_dev_block]
 }
 
+# Subir el dataset al bucket S3
+resource "aws_s3_object" "smoking_csv" {
+  bucket = aws_s3_bucket.smoking_data_dev.bucket
+  key    = "data/raw/smoking.csv"
+  source = "../data/raw/smoking.csv"  # Ajusta la ruta a tu CSV local si es necesario
+}
+
+# Subir imágenes al bucket S3
+resource "aws_s3_object" "images" {
+  for_each = {
+    "body.jpg" = "../src/body.jpg"
+    "Gender_smoking.png" = "../src/Gender_smoking.png"
+    "GTP.png" = "../src/GTP.png"
+    "hemoglobine_gender.png" = "../src/hemoglobine_gender.png"
+    "Triglyceride.png" = "../src/Triglyceride.png"
+  }
+  bucket = aws_s3_bucket.smoking_data_dev.bucket
+  key    = "${each.key}"  # Sin "src/" prefix, como se ve en tu imagen de S3
+  source = each.value
+}
+
+# Subir modelos al bucket S3
+resource "aws_s3_object" "models" {
+  for_each = {
+    "random_forest_model_Default.pkl" = "../src/random_forest_model_Default.pkl"
+    "scaler.pkl" = "../src/scaler.pkl"
+  }
+  bucket = aws_s3_bucket.smoking_data_dev.bucket
+  key    = "${each.key}"  # Sin "src/" prefix
+  source = each.value
+}
+
 # SSH Key Pair (genera .pem automáticamente, pero descarga manual desde AWS)
 resource "aws_key_pair" "smoking_key" {
   key_name   = var.key_name
@@ -248,18 +280,24 @@ resource "aws_instance" "smoking_app_dev" {
   user_data = base64encode(<<EOF
 #!/bin/bash
 sudo apt update -y
-sudo apt install python3-pip git awscli net-tools tmux -y  # Added tmux for persistence
-pip3 uninstall -y scikit-learn
+sudo apt install python3-pip git awscli net-tools -y
 cd /home/ubuntu
-git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git  # Switch to clone for working test
-cd Body_Signals_of_Smoking---AWS-Terraform-testing
-pip3 install -r requirements.txt --no-cache-dir --force-reinstall
-pip3 install scikit-learn==1.4.1.post1 --no-cache-dir --force-reinstall
+mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
+aws s3 sync s3://smoking-body-signals-data-dev/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet  # Sync without prefix
+if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
+if [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/app.py ] || \
+   [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/scaler.pkl ] || \
+   [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/random_forest_model_Default.pkl ]; then
+  echo "Critical files missing at $(date): $(ls /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/)" >> /home/ubuntu/sync_error.log
+  exit 1
+fi
+cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
+pip3 install -r src/requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
 cd src
 export AWS_REGION=eu-central-1
-tmux new-session -d -s streamlit 'streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug'  # Use tmux for persistence
-echo "Streamlit in tmux at $(date)" >> /home/ubuntu/streamlit.log
-pip3 show scikit-learn >> /home/ubuntu/sklearn_version.log
+nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
+echo "Streamlit started at $(date) with PID $$ at http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):8501" >> /home/ubuntu/streamlit.log
+netstat -tuln >> /home/ubuntu/network_check.log 2>&1
 EOF
   )
 
