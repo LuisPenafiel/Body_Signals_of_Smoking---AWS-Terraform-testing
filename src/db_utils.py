@@ -1,75 +1,41 @@
 import os
-import sqlite3
+import json
 import boto3
-import pandas as pd
-from botocore.exceptions import ClientError
-import logging
+import sqlite3
+import logging  # NEW: Logging
+
+logging.basicConfig(filename=os.path.join(os.path.dirname(__file__), 'db.log'), level=logging.DEBUG)
 
 class DatabaseManager:
     def __init__(self, is_aws, is_lambda):
-        """Inicializa la conexión a la base de datos según el entorno."""
         self.is_aws = is_aws
         self.is_lambda = is_lambda
-        self.local_db_path = '/home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/predictions.db' if is_aws and not is_lambda else '/tmp/predictions.db' if is_aws and is_lambda else 'predictions.db'
-        
-        if is_aws:
-            self.s3_bucket = 'smoking-body-signals-data-dev'
-            self.s3_key = 'src/predictions.db'
-            self.setup_aws_db()
+        if self.is_aws:
+            self.s3 = boto3.client('s3')
+            self.bucket = 'smoking-body-signals-data-dev'
+            logging.debug("DB Manager initialized for AWS/S3")
         else:
-            self.setup_local_db()
-    
-    def setup_aws_db(self):
-        s3 = boto3.client('s3')
-        try:
-            s3.download_file(self.s3_bucket, self.s3_key, self.local_db_path)
-        except ClientError as e:
-            if e.response['Error']['Code'] == '404':
-                self.create_db()
-                if not self.is_lambda:  # No subir a S3 en Lambda
-                    self.upload_to_s3()
-            else:
-                raise
-    
-    def setup_local_db(self):
-        if not os.path.exists(self.local_db_path):
-            self.create_db()
-    
-    def create_db(self):
-        conn = sqlite3.connect(self.local_db_path)
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS predictions (
-                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     gender TEXT,
-                     hemoglobin REAL,
-                     prediction TEXT,
-                     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
-        conn.commit()
-        conn.close()
-    
-    def save_prediction(self, gender, hemoglobin, prediction, is_aws):
-        """Guarda una predicción en la base de datos."""
-        conn = sqlite3.connect(self.local_db_path)
-        c = conn.cursor()
-        c.execute("INSERT INTO predictions (gender, hemoglobin, prediction) VALUES (?, ?, ?)", 
-                  (gender, hemoglobin, prediction))
-        conn.commit()
-        conn.close()
-        
-        # Upload to S3 only if AWS and not Lambda
-        if is_aws and not self.is_lambda:
-            self.upload_to_s3()
-    
-    def upload_to_s3(self):
-        s3 = boto3.client('s3')
-        s3.upload_file(self.local_db_path, self.s3_bucket, self.s3_key)
-    
-    def get_predictions(self):
-        conn = sqlite3.connect(self.local_db_path)
-        df = pd.read_sql_query("SELECT * FROM predictions", conn)
-        conn.close()
-        return df
-    
+            db_path = os.path.join(os.path.dirname(__file__), 'predictions.db')
+            self.conn = sqlite3.connect(db_path)
+            self.cursor = self.conn.cursor()
+            self.cursor.execute('''CREATE TABLE IF NOT EXISTS predictions 
+                                (gender TEXT, hemoglobin REAL, result TEXT)''')
+            self.conn.commit()
+            logging.debug("DB Manager initialized for local SQLite")
+
+    def save_prediction(self, gender, hemoglobin, result, is_aws):  # is_aws pasado por compatibilidad
+        if self.is_aws:
+            data = {'gender': gender, 'hemoglobin': hemoglobin, 'result': result}
+            key = f'predictions/{gender}_{hemoglobin}_{os.urandom(4).hex()}.json'  # Unique key
+            self.s3.put_object(Bucket=self.bucket, Key=key, Body=json.dumps(data))
+            logging.info(f"Saved prediction to S3: {key}")
+        else:
+            self.cursor.execute('INSERT INTO predictions (gender, hemoglobin, result) VALUES (?, ?, ?)',
+                                (gender, hemoglobin, result))
+            self.conn.commit()
+            logging.info("Saved prediction to local DB")
+
     def close(self):
-        if self.is_aws and not self.is_lambda:
-            self.upload_to_s3()
+        if not self.is_aws:
+            self.conn.close()
+            logging.debug("Local DB closed")

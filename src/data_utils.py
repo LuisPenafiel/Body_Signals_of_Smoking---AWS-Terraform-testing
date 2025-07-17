@@ -2,6 +2,9 @@ import os
 import boto3
 from pickle import load
 import streamlit as st
+import logging  # NEW: Log errors
+
+logging.basicConfig(filename=os.path.join(os.path.dirname(__file__), 'data.log'), level=logging.DEBUG)
 
 def get_file_paths(base_path):
     """Devuelve un diccionario con las rutas de los archivos necesarios."""
@@ -31,24 +34,19 @@ def ensure_files(base_path, is_aws, is_lambda, bucket_name='smoking-body-signals
                 local_path = paths[key]
                 if not os.path.exists(local_path):
                     s3.download_file(bucket_name, s3_key, local_path)
-                    st.success(f"Downloaded {s3_key} from S3.")
+                    logging.info(f"Downloaded {s3_key} from S3.")  # NEW: Log en vez de st.success
         else:
             for key, local_path in paths.items():
                 if not os.path.exists(local_path):
-                    st.error(f"File not found: {local_path}. Place it in {base_path}.")
-                    st.stop()
+                    logging.error(f"File not found: {local_path}. Place it in {base_path}.")  # FIXED: Log, no st.error/stop
+                    # No st.stop() - permite app continue
     except Exception as e:
-        st.error(f"File handling error: {e}")
-        st.rerun()
+        logging.error(f"File handling error: {e}")  # FIXED: Log, no st.rerun()
 
 def load_model_and_scaler(model_path, scaler_path):
     """Carga el modelo y el escalador desde los archivos especificados."""
-    try:
-        with open(model_path, 'rb') as f:
-            model = load(f)
-        with open(scaler_path, 'rb') as f:
-            scaler = load(f)
-        return model, scaler
-    except FileNotFoundError as e:
-        st.error(f"Error loading model or scaler: {e}")
-        st.stop()
+    with open(model_path, 'rb') as f:
+        model = load(f)
+    with open(scaler_path, 'rb') as f:
+        scaler = load(f)
+    return model, scaler  # Exception handled in caller

@@ -4,6 +4,10 @@ from PIL import Image
 from data_utils import get_file_paths, ensure_files, load_model_and_scaler
 from db_utils import DatabaseManager
 from prediction import prediction
+import logging  # NEW: Para logging a file en server
+
+# NEW: Setup logging a file (útil en EC2, no interfiere con Streamlit)
+logging.basicConfig(filename=os.path.join(os.path.dirname(__file__), 'app.log'), level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # --- Environment Detection ---
 IS_AWS = 'AWS_REGION' in os.environ or 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
@@ -264,20 +268,30 @@ def main():
     st.sidebar.title("Menu")
     selection = st.sidebar.radio("Navigation", ["Home", "Relevant Data", "Prediction", "Limitations"], label_visibility="collapsed")
 
+    logging.debug("Starting file ensure")  # NEW: Log init
     ensure_files(BASE_PATH, IS_AWS, IS_LAMBDA)
-    db = DatabaseManager(IS_AWS, IS_LAMBDA)  # Pass environment flags
-    model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
+    db = DatabaseManager(IS_AWS, IS_LAMBDA)
+
+    # FIXED: Try/except para load, permite app run incluso si model falla (muestra error en Prediction)
+    try:
+        model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
+        logging.debug("Model and scaler loaded successfully")
+    except Exception as e:
+        model, scaler = None, None
+        logging.error(f"Error loading model/scaler: {e}")
+        st.error(f"Model loading failed: {e}. Prediction page will not work.")
 
     if selection == "Home":
         home()
     elif selection == "Relevant Data":
         data()
     elif selection == "Prediction":
-        prediction(db, model, scaler, IS_AWS)  # Usar IS_AWS pasado como argumento
+        prediction(db, model, scaler, IS_AWS)
     elif selection == "Limitations":
         limitations_future_improvement()
 
     db.close()
+    logging.debug("Main finished")
 
 if __name__ == "__main__":
     main()

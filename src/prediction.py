@@ -1,9 +1,12 @@
 import streamlit as st
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+import os
+import logging  # NEW: Logging
 
-# FIX: Add is_aws parameter to function signature
-def prediction(db, model, scaler, is_aws):  # <-- IMPORTANT CHANGE HERE
+logging.basicConfig(filename=os.path.join(os.path.dirname(__file__), 'prediction.log'), level=logging.DEBUG)
+
+def prediction(db, model, scaler, is_aws):
     """Maneja la sección de predicción de fumadores."""
     st.header("Smoking Prediction :no_smoking:")
     st.subheader("Enter Your Data for Analysis")
@@ -17,6 +20,11 @@ def prediction(db, model, scaler, is_aws):  # <-- IMPORTANT CHANGE HERE
                          'Cholesterol', 'ALT', 'fasting blood sugar', 'systolic', 'AST', 'relaxation', 'weight(kg)',
                          'age', 'serum creatinine', 'eyesight(left)', 'eyesight(right)', 'tartar', 'dental caries',
                          'Urine protein', 'hearing(left)', 'hearing(right)']
+
+        # FIXED: Check if model/scaler loaded
+        if model is None or scaler is None:
+            st.error("Model or scaler not loaded. Please check logs and ensure files are available.")
+            return
 
         with st.form(key='prediction_form'):
             col1, col2 = st.columns(2)
@@ -96,9 +104,10 @@ def prediction(db, model, scaler, is_aws):  # <-- IMPORTANT CHANGE HERE
                     prediction_result = model.predict(data_normalized)[0]
                     result_text = class_dict[str(prediction_result)]
                     st.success(f"Prediction: **{result_text}**", icon="✅")
-                    # FIX: Use the passed is_aws parameter instead of undefined IS_AWS
-                    db.save_prediction(gender, val3, result_text, is_aws)  # <-- IMPORTANT CHANGE HERE
+                    db.save_prediction(gender, val3, result_text, is_aws)
                     st.session_state.predictions = st.session_state.get('predictions', 0) + 1
                     st.metric("Total Predictions", st.session_state.predictions)
+                    logging.info(f"Successful prediction: {result_text}")
                 except Exception as e:
                     st.error(f"Prediction Error: {e}")
+                    logging.error(f"Prediction error: {e}")

@@ -245,10 +245,10 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true # Mantener por compatibilidad, pero EIP lo reemplazará
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-  user_data = base64encode(<<EOF
+user_data = base64encode(<<EOF
   #!/bin/bash
   sudo apt update -y
-  sudo apt install python3-pip git awscli net-tools -y  # Añadido net-tools para netstat
+  sudo apt install python3-pip git awscli net-tools -y
   cd /home/ubuntu
   mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
   aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet
@@ -263,9 +263,9 @@ resource "aws_instance" "smoking_app_dev" {
   pip3 install -r src/requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
   cd src
   export AWS_REGION=eu-central-1
-  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false > /home/ubuntu/streamlit.log 2>&1 &
-  echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
-  netstat -tuln >> /home/ubuntu/network_check.log 2>&1  # Registra estado del puerto
+  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &  # FIXED: Añadido --server.headless true
+  echo "Streamlit started at $(date) with PID $$ at http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):8501" >> /home/ubuntu/streamlit.log  # NEW: Use dynamic IP
+  netstat -tuln >> /home/ubuntu/network_check.log 2>&1
   EOF
   )
 
