@@ -275,7 +275,8 @@ def main():
     # FIXED: Try/except para load, permite app run incluso si model falla (muestra error en Prediction)
     try:
         model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
-        logging.debug("Model and scaler loaded successfully")
+        logging.debug("Loaded OK")
+        print("Loaded OK")  # NEW
     except Exception as e:
         model, scaler = None, None
         logging.error(f"Error loading model/scaler: {e}")
