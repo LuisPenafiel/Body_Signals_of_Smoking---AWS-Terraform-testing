@@ -245,37 +245,37 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true # Mantener por compatibilidad, pero EIP lo reemplazará
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-user_data = base64encode(<<EOF
+  user_data = base64encode(<<EOF
 #!/bin/bash
 sudo apt update -y
-sudo apt install python3-pip git awscli net-tools -y
+sudo apt install python3-pip git awscli net-tools tmux -y  # Added tmux for persistence
+pip3 uninstall -y scikit-learn
 cd /home/ubuntu
-mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
-aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet
-if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
-if [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/app.py ] || \
-   [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/scaler.pkl ] || \
-   [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/random_forest_model_Default.pkl ]; then
-  echo "Critical files missing at $(date): $(ls /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/)" >> /home/ubuntu/sync_error.log
-  exit 1
-fi
-cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
-pip3 uninstall -y scikit-learn  # Uninstall any existing version
-pip3 install -r src/requirements.txt --no-cache-dir || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
-pip3 install scikit-learn==1.4.1.post1 --no-cache-dir --force-reinstall  # Explicit force to match saved model version
+git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git  # Switch to clone for working test
+cd Body_Signals_of_Smoking---AWS-Terraform-testing
+pip3 install -r requirements.txt --no-cache-dir --force-reinstall
+pip3 install scikit-learn==1.4.1.post1 --no-cache-dir --force-reinstall
 cd src
 export AWS_REGION=eu-central-1
-nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
-echo "Streamlit started at $(date) with PID $$ at http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):8501" >> /home/ubuntu/streamlit.log
-netstat -tuln >> /home/ubuntu/network_check.log 2>&1
-pip3 show scikit-learn >> /home/ubuntu/sklearn_version.log  # Log version for debug
-# Force recreate: 2025-07-17_16:00  # NEW: Change this timestamp each time to force user_data rerun
+tmux new-session -d -s streamlit 'streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug'  # Use tmux for persistence
+echo "Streamlit in tmux at $(date)" >> /home/ubuntu/streamlit.log
+pip3 show scikit-learn >> /home/ubuntu/sklearn_version.log
 EOF
-)
+  )
 
   tags = {
     Name        = "SmokingAppDev"
     Environment = var.env
+  }
+
+  lifecycle {
+    replace_triggered_by = [null_resource.force_replace]
+  }
+}
+
+resource "null_resource" "force_replace" {
+  triggers = {
+    timestamp = timestamp()
   }
 }
 
