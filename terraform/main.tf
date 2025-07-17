@@ -1,115 +1,3 @@
-# # /terraform/main.tf
-# 
-# # Proveedor AWS
-# provider "aws" {
-#   region = var.region
-# }
-# 
-# # Crear un bucket S3 para el dataset y archivos
-# resource "aws_s3_bucket" "smoking_data_bucket" {
-#   bucket = "smoking-body-signals-data-${var.env}"
-#   acl    = "private"
-# 
-#   tags = {
-#     Name        = "SmokingBodySignalsData"
-#     Environment = var.env
-#   }
-# }
-# 
-# # Subir el dataset al bucket S3
-# resource "aws_s3_bucket_object" "smoking_csv" {
-#   bucket = aws_s3_bucket.smoking_data_bucket.bucket
-#   key    = "data/raw/smoking.csv"
-#   source = "../data/raw/smoking.csv"
-#   acl    = "private"
-# }
-# 
-# # Subir imágenes al bucket S3 (opcional, para app Streamlit)
-# resource "aws_s3_bucket_object" "images" {
-#   for_each = fileset("../src/", "*.png")
-#   bucket   = aws_s3_bucket.smoking_data_bucket.bucket
-#   key      = "src/${each.value}"
-#   source   = "../src/${each.value}"
-#   acl      = "private"
-# }
-# 
-# # Crear una instancia EC2 para alojar la app Streamlit
-# resource "aws_instance" "smoking_app_instance" {
-#   ami           = "ami-04e601abe3e1a910f"  # AMI de Ubuntu 22.04 LTS en eu-central-1 (verifica en la consola)
-#   instance_type = "t2.micro"               # Gratis en Free Tier
-#   key_name      = "smoking-key"            # Crea una clave SSH en AWS si no la tienes
-#   security_groups = [aws_security_group.smoking_sg.name]
-# 
-#   user_data = <<-EOF
-#               #!/bin/bash
-#               apt-get update -y
-#               apt-get install -y python3-pip python3-venv
-#               python3 -m venv /home/ubuntu/smoking-env
-#               source /home/ubuntu/smoking-env/bin/activate
-#               pip install -r /tmp/requirements.txt
-#               mkdir -p /home/ubuntu/app
-#               cd /home/ubuntu/app
-#               aws s3 cp s3://smoking-body-signals-data-${var.env}/data/raw/smoking.csv .
-#               aws s3 cp s3://smoking-body-signals-data-${var.env}/src/ . --recursive
-#               cp /tmp/app.py .
-#               nohup streamlit run app.py --server.port 80 --server.address 0.0.0.0 &
-#               EOF
-# 
-#   tags = {
-#     Name        = "SmokingBodySignalsApp"
-#     Environment = var.env
-#   }
-# }
-# 
-# # Crear un grupo de seguridad para permitir el tráfico HTTP (puerto 80)
-# resource "aws_security_group" "smoking_sg" {
-#   name        = "smoking-app-sg"
-#   description = "Allow HTTP and SSH traffic"
-# 
-#   ingress {
-#     from_port   = 80
-#     to_port     = 80
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-# 
-#   ingress {
-#     from_port   = 22
-#     to_port     = 22
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]  # Solo para pruebas; limita esto en producción
-#   }
-# 
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-# 
-#   tags = {
-#     Name        = "SmokingAppSecurityGroup"
-#     Environment = var.env
-#   }
-# }
-# 
-# # Opcional: Crear una base de datos RDS para métricas
-# resource "aws_db_instance" "smoking_metrics_db" {
-#   allocated_storage    = 20
-#   engine               = "mysql"
-#   engine_version       = "5.7"  # Versión compatible con db.t2.micro en eu-central-1
-#   instance_class       = "db.t2.micro"  # Gratis en Free Tier con límites
-#   username             = "admin"
-#   password             = var.db_password
-#   skip_final_snapshot  = true
-# 
-#   tags = {
-#     Name        = "SmokingBodySignalsMetricsDB"
-#     Environment = var.env
-#   }
-# }
-# _____________________________________________________________________
-
 terraform {
   backend "remote" {
     organization = "luis-terraform-learning"
@@ -120,7 +8,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.30.0" # Upgraded to 5.x series
+      version = "~> 5.30.0"
     }
   }
 }
@@ -131,7 +19,7 @@ provider "aws" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "5.8.0" # Keep this version
+  version = "5.8.0"
 
   name = "smoking-vpc"
   cidr = "10.0.0.0/16"
@@ -154,31 +42,27 @@ resource "aws_security_group" "smoking_sg" {
   description = "Security group for Smoking App"
   vpc_id      = module.vpc.vpc_id
 
-  # Permitir tráfico HTTP (puerto 80)
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Para pruebas; limita en producción
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Permitir SSH (puerto 22, solo para pruebas)
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Limita en producción a tu IP
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Permitir Streamlit (puerto 8501, para pruebas)
   ingress {
     from_port   = 8501
     to_port     = 8501
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Para pruebas; limita a tu IP en prod
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Permitir todo el tráfico saliente
   egress {
     from_port   = 0
     to_port     = 0
@@ -192,7 +76,6 @@ resource "aws_security_group" "smoking_sg" {
   }
 }
 
-# S3 Bucket for app files and DB
 resource "aws_s3_bucket" "smoking_data_dev" {
   bucket = "smoking-body-signals-data-dev"
   tags = {
@@ -201,7 +84,6 @@ resource "aws_s3_bucket" "smoking_data_dev" {
   }
 }
 
-# Deshabilitar Block Public Access para permitir policy
 resource "aws_s3_bucket_public_access_block" "smoking_data_dev_block" {
   bucket = aws_s3_bucket.smoking_data_dev.id
 
@@ -211,7 +93,6 @@ resource "aws_s3_bucket_public_access_block" "smoking_data_dev_block" {
   restrict_public_buckets = false
 }
 
-# Policy para acceso público de lectura (GetObject)
 resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
   bucket = aws_s3_bucket.smoking_data_dev.id
 
@@ -230,94 +111,42 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
   depends_on = [aws_s3_bucket_public_access_block.smoking_data_dev_block]
 }
 
-# Subir el dataset al bucket S3
-resource "aws_s3_object" "smoking_csv" {
-  bucket = aws_s3_bucket.smoking_data_dev.bucket
-  key    = "data/raw/smoking.csv"
-  source = "../data/raw/smoking.csv"  # Ajusta la ruta a tu CSV local si es necesario
-}
-
-# Subir imágenes al bucket S3
-resource "aws_s3_object" "images" {
-  for_each = {
-    "body.jpg" = "../src/body.jpg"
-    "Gender_smoking.png" = "../src/Gender_smoking.png"
-    "GTP.png" = "../src/GTP.png"
-    "hemoglobine_gender.png" = "../src/hemoglobine_gender.png"
-    "Triglyceride.png" = "../src/Triglyceride.png"
-  }
-  bucket = aws_s3_bucket.smoking_data_dev.bucket
-  key    = "${each.key}"  # Sin "src/" prefix, como se ve en tu imagen de S3
-  source = each.value
-}
-
-# Subir modelos al bucket S3
-resource "aws_s3_object" "models" {
-  for_each = {
-    "random_forest_model_Default.pkl" = "../src/random_forest_model_Default.pkl"
-    "scaler.pkl" = "../src/scaler.pkl"
-  }
-  bucket = aws_s3_bucket.smoking_data_dev.bucket
-  key    = "${each.key}"  # Sin "src/" prefix
-  source = each.value
-}
-
-# SSH Key Pair (genera .pem automáticamente, pero descarga manual desde AWS)
 resource "aws_key_pair" "smoking_key" {
   key_name   = var.key_name
-  public_key = var.ec2_public_key # Usa variable de TF Cloud
+  public_key = var.ec2_public_key
 }
 
 resource "aws_instance" "smoking_app_dev" {
-  ami                         = "ami-05b91990f4b2d588f" # AMI custom generada
+  ami                         = "ami-05b91990f4b2d588f"
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.smoking_key.key_name
   vpc_security_group_ids      = [aws_security_group.smoking_sg.id]
   subnet_id                   = module.vpc.public_subnets[0]
-  associate_public_ip_address = true # Mantener por compatibilidad, pero EIP lo reemplazará
+  associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
   user_data = base64encode(<<EOF
-#!/bin/bash
-sudo apt update -y
-sudo apt install python3-pip git awscli net-tools -y
-cd /home/ubuntu
-mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
-aws s3 sync s3://smoking-body-signals-data-dev/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet  # Sync without prefix
-if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
-if [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/app.py ] || \
-   [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/scaler.pkl ] || \
-   [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/random_forest_model_Default.pkl ]; then
-  echo "Critical files missing at $(date): $(ls /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/)" >> /home/ubuntu/sync_error.log
-  exit 1
-fi
-cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
-pip3 install -r src/requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
-cd src
-export AWS_REGION=eu-central-1
-nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
-echo "Streamlit started at $(date) with PID $$ at http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):8501" >> /home/ubuntu/streamlit.log
-netstat -tuln >> /home/ubuntu/network_check.log 2>&1
-EOF
+  #!/bin/bash
+  sudo apt update -y
+  sudo apt install -y python3-pip git awscli net-tools
+  cd /home/ubuntu
+  mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing
+  git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git .
+  cd src
+  pip3 install -r requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
+  export AWS_REGION=eu-central-1
+  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 > /home/ubuntu/streamlit.log 2>&1 &
+  echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
+  netstat -tuln >> /home/ubuntu/network_check.log 2>&1
+  EOF
   )
 
   tags = {
     Name        = "SmokingAppDev"
     Environment = var.env
   }
-
-  lifecycle {
-    replace_triggered_by = [null_resource.force_replace]
-  }
 }
 
-resource "null_resource" "force_replace" {
-  triggers = {
-    timestamp = timestamp()
-  }
-}
-
-# Elastic IP para dirección fija
 resource "aws_eip" "smoking_eip" {
   instance = aws_instance.smoking_app_dev.id
   domain   = "vpc"
@@ -327,7 +156,6 @@ resource "aws_eip" "smoking_eip" {
   }
 }
 
-# Output para IP pública fija
 output "ec2_public_ip" {
   value = aws_eip.smoking_eip.public_ip
 }
@@ -335,34 +163,30 @@ output "ec2_public_ip" {
 resource "aws_cloudwatch_metric_alarm" "cpu_alarm" {
   alarm_name          = "ec2-cpu-alarm"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "2"  # 2 períodos de 120s
+  evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "120"  # 2 minutos
+  period              = "120"
   statistic           = "Average"
-  threshold           = "80"  # % CPU
+  threshold           = "80"
   alarm_description   = "This metric monitors ec2 cpu utilization exceeding 80%"
-  alarm_actions       = []  # Sin acción (gratis), añade SNS si quieres email
+  alarm_actions       = []
   dimensions = {
     InstanceId = aws_instance.smoking_app_dev.id
   }
 }
 
-# IAM Role for EC2 to read S3 and create AMI
 resource "aws_iam_role" "ec2_s3_role" {
   name = "ec2_s3_read_role"
-
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-      },
-    ]
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
   })
 }
 
@@ -371,13 +195,11 @@ resource "aws_iam_role_policy" "ec2_s3_extended" {
   role   = aws_iam_role.ec2_s3_role.name
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = ["s3:*", "ec2:CreateImage"]
-        Resource = "*"
-      }
-    ]
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:*", "ec2:CreateImage"]
+      Resource = "*"
+    }]
   })
 }
 

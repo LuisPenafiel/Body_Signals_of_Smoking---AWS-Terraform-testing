@@ -1,10 +1,6 @@
 import streamlit as st
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-import os
-import logging  # NEW: Logging
-
-logging.basicConfig(filename=os.path.join(os.path.dirname(__file__), 'prediction.log'), level=logging.DEBUG)
 
 def prediction(db, model, scaler, is_aws):
     """Maneja la sección de predicción de fumadores."""
@@ -21,46 +17,41 @@ def prediction(db, model, scaler, is_aws):
                          'age', 'serum creatinine', 'eyesight(left)', 'eyesight(right)', 'tartar', 'dental caries',
                          'Urine protein', 'hearing(left)', 'hearing(right)']
 
-        # FIXED: Check if model/scaler loaded
-        if model is None or scaler is None:
-            st.error("Model or scaler not loaded. Please check logs and ensure files are available.")
-            return
-
         with st.form(key='prediction_form'):
             col1, col2 = st.columns(2)
             with col1:
-                gender = st.selectbox("Gender", ["F", "M"], help="Select your gender")
-                val2 = st.slider("Gtp", min_value=1.0, max_value=996.0, step=0.1, value=100.0)
-                val3 = st.slider("Hemoglobin", min_value=7.4, max_value=18.7, step=0.1, value=12.0)
-                val4 = st.slider("Height (cm)", min_value=100.0, max_value=230.0, step=0.1, value=170.0)
+                gender = st.selectbox("Gender", ["F", "M"])
+                val2 = st.slider("Gtp", 1.0, 996.0, 100.0)
+                val3 = st.slider("Hemoglobin", 7.4, 18.7, 12.0)
+                val4 = st.slider("Height (cm)", 100.0, 230.0, 170.0)
             with col2:
-                val5 = st.slider("Triglycerides", min_value=31.0, max_value=1029.0, step=0.1, value=150.0)
-                val6 = st.slider("Waist (cm)", min_value=80.0, max_value=102.0, step=0.1, value=90.0)
-                val7 = st.slider("LDL", min_value=70.0, max_value=300.0, step=0.1, value=100.0)
+                val5 = st.slider("Triglycerides", 31.0, 1029.0, 150.0)
+                val6 = st.slider("Waist (cm)", 80.0, 102.0, 90.0)
+                val7 = st.slider("LDL", 70.0, 300.0, 100.0)
             with col1:
-                val8 = st.slider("HDL", min_value=20.0, max_value=300.0, step=0.1, value=50.0)
-                val9 = st.slider("Cholesterol", min_value=300.0, max_value=700.0, step=0.1, value=200.0)
-                val10 = st.slider("ALT", min_value=1.0, max_value=996.0, step=0.1, value=20.0)
+                val8 = st.slider("HDL", 20.0, 300.0, 50.0)
+                val9 = st.slider("Cholesterol", 300.0, 700.0, 200.0)
+                val10 = st.slider("ALT", 1.0, 996.0, 20.0)
             with col2:
-                val11 = st.slider("Fasting Blood Sugar", min_value=0.0, max_value=126.0, step=0.1, value=90.0)
-                val12 = st.slider("Systolic", min_value=0.0, max_value=140.0, step=0.1, value=120.0)
-                val13 = st.slider("AST", min_value=10.0, max_value=1543.0, step=0.1, value=25.0)
+                val11 = st.slider("Fasting Blood Sugar", 0.0, 126.0, 90.0)
+                val12 = st.slider("Systolic", 0.0, 140.0, 120.0)
+                val13 = st.slider("AST", 10.0, 1543.0, 25.0)
             with col1:
-                val14 = st.slider("Relaxation", min_value=0.0, max_value=120.0, step=0.1, value=80.0)
-                val15 = st.slider("Weight (kg)", min_value=35.0, max_value=300.0, step=0.1, value=70.0)
-                val16 = st.slider("Age", min_value=0.0, max_value=100.0, step=0.1, value=30.0)
+                val14 = st.slider("Relaxation", 0.0, 120.0, 80.0)
+                val15 = st.slider("Weight (kg)", 35.0, 300.0, 70.0)
+                val16 = st.slider("Age", 0.0, 100.0, 30.0)
             with col2:
-                val17 = st.slider("Serum Creatinine", min_value=0.27, max_value=6.81, step=0.01, value=1.0)
-                val18 = st.slider("Eyesight (Left)", min_value=0.0, max_value=2.0, step=0.1, value=1.0)
-                val19 = st.slider("Eyesight (Right)", min_value=0.0, max_value=2.0, step=0.1, value=1.0)
-                val20 = st.slider("Urine Protein", min_value=1.0, max_value=6.0, step=0.1, value=1.0)
+                val17 = st.slider("Serum Creatinine", 0.27, 6.81, 1.0)
+                val18 = st.slider("Eyesight (Left)", 0.0, 2.0, 1.0)
+                val19 = st.slider("Eyesight (Right)", 0.0, 2.0, 1.0)
+                val20 = st.slider("Urine Protein", 1.0, 6.0, 1.0)
 
             hearing_left = st.selectbox("Hearing (Left)", ["Normal", "Difficulty"])
             hearing_right = st.selectbox("Hearing (Right)", ["Normal", "Difficulty"])
             tartar = st.selectbox("Tartar", ["No", "Yes"])
             dental_caries = st.selectbox("Dental Caries", ["No", "Yes"])
 
-            if st.form_submit_button("Predict", help="Get your smoking prediction"):
+            if st.form_submit_button("Predict"):
                 gender_value = 1 if gender == "M" else 0
                 hearing_left_value = 1 if hearing_left == "Normal" else 2
                 hearing_right_value = 1 if hearing_right == "Normal" else 2
@@ -96,18 +87,15 @@ def prediction(db, model, scaler, is_aws):
                 df_scaled = pd.DataFrame(data, columns=num_variables)
 
                 try:
-                    # Ajuste para coincidir con nombres de características del modelo
                     if hasattr(model, 'feature_names_in_'):
                         if not all(col in model.feature_names_in_ for col in df_scaled.columns):
-                            st.warning("Feature names may not match the trained model. Please verify training data in your notebook.")
+                            st.warning("Feature names may not match the trained model.")
                     data_normalized = scaler.transform(df_scaled)
                     prediction_result = model.predict(data_normalized)[0]
                     result_text = class_dict[str(prediction_result)]
-                    st.success(f"Prediction: **{result_text}**", icon="✅")
+                    st.success(f"Prediction: **{result_text}**")
                     db.save_prediction(gender, val3, result_text, is_aws)
                     st.session_state.predictions = st.session_state.get('predictions', 0) + 1
                     st.metric("Total Predictions", st.session_state.predictions)
-                    logging.info(f"Successful prediction: {result_text}")
                 except Exception as e:
                     st.error(f"Prediction Error: {e}")
-                    logging.error(f"Prediction error: {e}")
