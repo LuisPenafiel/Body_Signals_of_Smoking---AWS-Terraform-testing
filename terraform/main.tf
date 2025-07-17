@@ -260,15 +260,16 @@ if [ ! -f /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/app.p
   exit 1
 fi
 cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
-pip3 uninstall -y scikit-learn  # NEW: Uninstall any existing version
-pip3 install -r src/requirements.txt --no-cache-dir --force-reinstall || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
-pip3 install scikit-learn==1.4.1.post1 --no-cache-dir --force-reinstall  # NEW: Explicit force to match saved model version
+pip3 uninstall -y scikit-learn  # Uninstall any existing version
+pip3 install -r src/requirements.txt --no-cache-dir || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
+pip3 install scikit-learn==1.4.1.post1 --no-cache-dir --force-reinstall  # Explicit force to match saved model version
 cd src
 export AWS_REGION=eu-central-1
 nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
 echo "Streamlit started at $(date) with PID $$ at http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):8501" >> /home/ubuntu/streamlit.log
 netstat -tuln >> /home/ubuntu/network_check.log 2>&1
-pip3 show scikit-learn >> /home/ubuntu/sklearn_version.log  # NEW: Log version for debug
+pip3 show scikit-learn >> /home/ubuntu/sklearn_version.log  # Log version for debug
+# Force recreate: 2025-07-17_16:00  # NEW: Change this timestamp each time to force user_data rerun
 EOF
 )
 
