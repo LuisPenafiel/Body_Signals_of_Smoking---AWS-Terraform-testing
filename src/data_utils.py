@@ -1,6 +1,6 @@
 import os
 import boto3
-from joblib import load  # Usamos joblib para mejor compatibilidad con scikit-learn
+from joblib import load
 import streamlit as st
 import logging
 
@@ -31,20 +31,23 @@ def ensure_files(base_path, is_aws, is_lambda, bucket_name='smoking-body-signals
                                 ('trigly', 'src/Triglyceride.png')]:
                 local_path = paths[key]
                 if not os.path.exists(local_path):
+                    logging.warning(f"File {local_path} not found, attempting download from {s3_key}")
                     s3.download_file(bucket_name, s3_key, local_path)
                     logging.info(f"Downloaded {s3_key} from S3.")
         else:
             for key, local_path in paths.items():
                 if not os.path.exists(local_path):
                     logging.error(f"File not found: {local_path}.")
-                    # No st.stop(), permitimos continuar
     except Exception as e:
         logging.error(f"File handling error: {e}")
+        raise
 
 def load_model_and_scaler(model_path, scaler_path):
     try:
+        logging.info(f"Loading model from {model_path} and scaler from {scaler_path}")
         model = load(model_path)
         scaler = load(scaler_path)
+        logging.info("Model and scaler loaded successfully")
         return model, scaler
     except Exception as e:
         logging.error(f"Error loading model or scaler: {e}")

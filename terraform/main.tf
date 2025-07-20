@@ -120,7 +120,7 @@ resource "aws_key_pair" "smoking_key" {
 
 resource "aws_ebs_volume" "smoking_ebs" {
   availability_zone = "${var.AWS_REGION}a"
-  size              = 8  # Mínimo gratuito para Free Tier
+  size              = 8  # Mínimo gratuito
   tags = {
     Name        = "SmokingAppEBS-${var.env}"
     Environment = var.env
@@ -142,12 +142,13 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-  # Sin depends_on para evitar ciclos
   user_data = base64encode(<<EOF
   #!/bin/bash
+  set -x  # Habilita depuración
   sudo apt update -y
   sudo apt install -y python3-pip python3-venv awscli net-tools
   python3 -m venv /home/ubuntu/smoking-env
+  if [ $? -ne 0 ]; then echo "Failed to create venv at $(date)" >> /home/ubuntu/install_error.log; exit 1; fi
   source /home/ubuntu/smoking-env/bin/activate
   mkdir -p /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
   cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
@@ -163,9 +164,17 @@ resource "aws_instance" "smoking_app_dev" {
   aws s3 cp s3://smoking-body-signals-data-dev/src/db_utils.py ./
   aws s3 cp s3://smoking-body-signals-data-dev/src/prediction.py ./
   aws s3 cp s3://smoking-body-signals-data-dev/src/requirements.txt ./
-  pip install -r requirements.txt --no-cache-dir || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
+  if [ ! -f requirements.txt ]; then echo "requirements.txt missing at $(date)" >> /home/ubuntu/install_error.log; exit 1; fi
+  pip install -r requirements.txt --no-cache-dir || { echo "Pip install failed at $(date): $(pip3 install --verbose --no-cache-dir)" >> /home/ubuntu/install_error.log; exit 1; }
   export AWS_REGION=eu-central-1
   nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
+  sleep 10
+  if ! pgrep -f streamlit > /dev/null; then
+    echo "Streamlit failed to start at $(date). Check logs:" >> /home/ubuntu/streamlit.log
+    cat /home/ubuntu/streamlit.log >> /home/ubuntu/streamlit.log
+  fi
+  echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
+  netstat -tuln >> /home/ubuntu/network_check.log 2>&1
   EOF
   )
 
