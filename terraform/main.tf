@@ -137,7 +137,12 @@ aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of
 if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
 chown -R ubuntu:ubuntu /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
 cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
-pip3 install scikit-learn==1.4.1.post1 -r requirements.txt || { echo "Pip install failed at $(date): $(pip3 install --verbose)" >> /home/ubuntu/install_error.log; exit 1; }
+if [ -f requirements.txt ]; then
+  pip3 install scikit-learn==1.4.1.post1 -r requirements.txt || { echo "Pip install failed at $(date): $(pip3 install --verbose)" >> /home/ubuntu/install_error.log; exit 1; }
+else
+  echo "requirements.txt not found at $(date), installing minimal dependencies" >> /home/ubuntu/install_error.log
+  pip3 install scikit-learn==1.4.1.post1 streamlit==1.28.0 pandas==2.0.3 pillow==10.0.0 boto3==1.28.0 || { echo "Minimal install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
+fi
 export AWS_REGION=eu-central-1
 nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
 sleep 5
