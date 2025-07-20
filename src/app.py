@@ -110,9 +110,13 @@ def main():
     st.sidebar.title("Menu")
     selection = st.sidebar.radio("Navigation", ["Home", "Relevant Data", "Prediction", "Limitations"], label_visibility="collapsed")
 
-    ensure_files(BASE_PATH, IS_AWS, IS_LAMBDA)
-    db = DatabaseManager(IS_AWS, IS_LAMBDA)
-    model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
+    try:
+        ensure_files(BASE_PATH, IS_AWS, IS_LAMBDA)
+        db = DatabaseManager(IS_AWS, IS_LAMBDA)
+        model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
+    except Exception as e:
+        st.error(f"Initialization error: {str(e)}")
+        st.stop()
 
     if selection == "Home":
         home()

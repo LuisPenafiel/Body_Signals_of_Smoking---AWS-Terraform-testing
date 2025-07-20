@@ -137,6 +137,7 @@ aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of
 if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
 chown -R ubuntu:ubuntu /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
 cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
+export PATH=$PATH:/home/ubuntu/.local/bin
 if [ -f requirements.txt ]; then
   pip3 install scikit-learn==1.4.1.post1 -r requirements.txt || { echo "Pip install failed at $(date): $(pip3 install --verbose)" >> /home/ubuntu/install_error.log; exit 1; }
 else
