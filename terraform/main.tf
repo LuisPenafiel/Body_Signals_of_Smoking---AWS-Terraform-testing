@@ -127,27 +127,28 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-  user_data = base64encode(<<EOF
-  #!/bin/bash
-  sudo apt update -y
-  sudo apt install -y python3-pip git awscli net-tools
-  cd /home/ubuntu
-  mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
-  aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet
-  if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
-  cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
-  pip3 install scikit-learn==1.4.1.post1 -r requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
-  export AWS_REGION=eu-central-1
-  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
-  sleep 5
-  if ! pgrep -f streamlit > /dev/null; then
-    echo "Streamlit failed to start at $(date). Check logs:" >> /home/ubuntu/streamlit.log
-    cat /home/ubuntu/streamlit.log >> /home/ubuntu/streamlit.log
-  fi
-  echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
-  netstat -tuln >> /home/ubuntu/network_check.log 2>&1
-  EOF
-  )
+user_data = base64encode(<<EOF
+#!/bin/bash
+sudo apt update -y
+sudo apt install -y python3-pip git awscli net-tools
+cd /home/ubuntu
+mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
+aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet
+if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
+chown -R ubuntu:ubuntu /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
+cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
+pip3 install scikit-learn==1.4.1.post1 -r requirements.txt || { echo "Pip install failed at $(date): $(pip3 install --verbose)" >> /home/ubuntu/install_error.log; exit 1; }
+export AWS_REGION=eu-central-1
+nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
+sleep 5
+if ! pgrep -f streamlit > /dev/null; then
+  echo "Streamlit failed to start at $(date). Check logs:" >> /home/ubuntu/streamlit.log
+  cat /home/ubuntu/streamlit.log >> /home/ubuntu/streamlit.log
+fi
+echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
+netstat -tuln >> /home/ubuntu/network_check.log 2>&1
+EOF
+)
 
   tags = {
     Name        = "SmokingAppDev"
