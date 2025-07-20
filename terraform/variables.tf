@@ -45,18 +45,16 @@ variable "AWS_ACCESS_KEY_ID" {
   description = "The AWS Access Key ID for authentication"
   type        = string
   sensitive   = true
-  # No default - must be provided via TF Cloud or environment variables
 }
 
 variable "AWS_SECRET_ACCESS_KEY" {
   description = "The AWS Secret Access Key for authentication"
   type        = string
   sensitive   = true
-  # No default - must be provided via TF Cloud or environment variables
 }
 
 variable "enable_network_address_usage_metrics" {
-  description = "Enable network address usage metrics for the VPC (disabled by default to avoid errors in Free Tier)"
+  description = "Enable network address usage metrics for the VPC"
   type        = bool
   default     = false
 }
@@ -67,24 +65,22 @@ variable "instance_type" {
   default     = "t2.micro"
   validation {
     condition     = contains(["t2.micro", "t2.small", "t3.micro"], var.instance_type)
-    error_message = "The instance_type must be one of: t2.micro, t2.small, t3.micro (Free Tier compatible)."
+    error_message = "The instance_type must be one of: t2.micro, t2.small, t3.micro."
   }
 }
 
 variable "key_name" {
   description = "The name of the SSH key pair for EC2 access"
   type        = string
-  default     = "smoking-ec2-key"  # Matches your key in main.tf
+  default     = "smoking-ec2-key"
 }
 
 variable "ec2_public_key" {
   description = "The public SSH key for EC2 instance access"
   type        = string
-  # No default - must be provided via TF Cloud variable
+  sensitive   = true
   validation {
     condition     = can(regex("^ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}$", var.ec2_public_key))
     error_message = "The ec2_public_key must be a valid SSH public key starting with 'ssh-rsa'."
   }
 }
-
-#cambio en public ec2 key

@@ -16,7 +16,7 @@ def get_file_paths(base_path):
     }
 
 def ensure_files(base_path, is_aws, is_lambda, bucket_name='smoking-body-signals-data-dev', region_name='eu-central-1'):
-    """Asegura que los archivos necesarios estén disponibles, descargándolos de S3 si es necesario."""
+    """Asegura que los archivos necesarios estén disponibles."""
     try:
         s3 = boto3.client('s3', region_name=region_name) if is_aws and not is_lambda else None
         paths = get_file_paths(base_path)

@@ -9,9 +9,7 @@ from prediction import prediction
 IS_AWS = 'AWS_REGION' in os.environ or 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
 IS_LAMBDA = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
 
-# --- S3 and File Configuration ---
-BUCKET_NAME = 'smoking-body-signals-data-dev'
-REGION_NAME = 'eu-central-1'
+# --- File Configuration ---
 BASE_PATH = '/home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src' if IS_AWS and not IS_LAMBDA else '/tmp' if IS_AWS and IS_LAMBDA else '/workspaces/Body_Signals_of_Smoking---AWS-Terraform-testing/src'
 paths = get_file_paths(BASE_PATH)
 
@@ -20,17 +18,12 @@ def home():
     st.markdown("<div class='header'><h1><i class='fas fa-lungs'></i> Body Signals of Smoking</h1><p class='slogan animate__animated animate__fadeIn'>Empowering Health Awareness</p></div>", unsafe_allow_html=True)
     st.markdown("""
         <style>
-            .content-text {
-                font-family: 'Roboto', sans-serif;
-                font-weight: bold;
-                color: #2C3E50;
-                line-height: 1.6;
-            }
+            .content-text { font-family: 'Roboto', sans-serif; font-weight: bold; color: #2C3E50; line-height: 1.6; }
         </style>
     """, unsafe_allow_html=True)
     st.markdown("""
         <div class='content-text'>
-            In today's era, cigarettes pose serious risks. Research highlights health issues from cardiovascular diseases to sensory impairments. The 'Body Signals of Smoking' project uses biomarkers to predict smoking with a random forest classifier, aiding early detection.
+            In today's era, cigarettes pose serious risks. Research highlights health issues from cardiovascular diseases to sensory impairments. The 'Body Signals of Smoking' project uses biomarkers to predict smoking, aiding early detection.
         </div>
     """, unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
@@ -82,7 +75,7 @@ def limitations_future_improvement():
             </style>
         """, unsafe_allow_html=True)
         st.markdown("""
-            <div class='insight-panel'><h3><i class='limitation-icon fas fa-exclamation-triangle'></i> Current Challenges</h3><div class='content-text'>- Data lacks context.- No geographic data.- Missing intensity details.- Limited insights.</div><div class='progress-container'><div class='progress-bar' style='width: 30%;'></div></div></div>
+            <div class='insight-panel'><h3><i class='limitation-icon fas fa-exclamation-triangle'></i> Current Challenges</h3><div class='content-text'>- Data lacks context.- No geographic data.- Missing intensity.- Limited insights.</div><div class='progress-container'><div class='progress-bar' style='width: 30%;'></div></div></div>
             <div class='insight-panel'><h3><i class='improvement-icon fas fa-rocket'></i> Future Directions</h3><div class='content-text'>- Live studies.- CO analysis.- Environmental mapping.- Behavioral tracking.</div><div class='progress-container'><div class='progress-bar' style='width: 20%;'></div></div></div>
             <div style='background: #FFE0B2; padding: 15px; border-radius: 10px; text-align: center; margin-top: 20px;'><p style='color: #EF6C00; font-weight: bold;'><i class='fas fa-shield-alt'></i> For research use only.</p></div>
         """, unsafe_allow_html=True)

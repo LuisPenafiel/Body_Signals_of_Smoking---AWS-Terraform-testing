@@ -14,7 +14,9 @@ terraform {
 }
 
 provider "aws" {
-  region = var.AWS_REGION
+  region     = var.AWS_REGION
+  access_key = var.AWS_ACCESS_KEY_ID
+  secret_key = var.AWS_SECRET_ACCESS_KEY
 }
 
 module "vpc" {
@@ -130,12 +132,18 @@ resource "aws_instance" "smoking_app_dev" {
   sudo apt update -y
   sudo apt install -y python3-pip git awscli net-tools
   cd /home/ubuntu
-  mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing
-  git clone https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git .
-  cd src
-  pip3 install -r requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
+  mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
+  aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet
+  if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
+  cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
+  pip3 install scikit-learn==1.4.1.post1 -r requirements.txt || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
   export AWS_REGION=eu-central-1
-  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 > /home/ubuntu/streamlit.log 2>&1 &
+  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
+  sleep 5
+  if ! pgrep -f streamlit > /dev/null; then
+    echo "Streamlit failed to start at $(date). Check logs:" >> /home/ubuntu/streamlit.log
+    cat /home/ubuntu/streamlit.log >> /home/ubuntu/streamlit.log
+  fi
   echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
   netstat -tuln >> /home/ubuntu/network_check.log 2>&1
   EOF
@@ -206,4 +214,14 @@ resource "aws_iam_role_policy" "ec2_s3_extended" {
 resource "aws_iam_instance_profile" "ec2_s3_profile" {
   name = "ec2_s3_profile"
   role = aws_iam_role.ec2_s3_role.name
+}
+
+resource "aws_cloudwatch_log_group" "streamlit_logs" {
+  name              = "/aws/ec2/smoking-app-logs"
+  retention_in_days = 7
+}
+
+resource "aws_cloudwatch_log_stream" "streamlit_stream" {
+  name           = "streamlit-log-stream"
+  log_group_name = aws_cloudwatch_log_group.streamlit_logs.name
 }
