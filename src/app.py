@@ -19,22 +19,21 @@ REGION_NAME = 'eu-central-1'
 BASE_PATH = '/home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src' if IS_AWS and not IS_LAMBDA else '/tmp' if IS_AWS and IS_LAMBDA else '/workspaces/Body_Signals_of_Smoking---AWS-Terraform-testing/src'
 paths = get_file_paths(BASE_PATH)
 
-# --- Download Function as Fallback ---
+# --- Download Function from Old Code ---
 def download_s3_files():
     if not IS_AWS:
         return
     try:
         s3 = boto3.client('s3', region_name=REGION_NAME)
-        for key, s3_key in [('model', 'src/random_forest_model_Default.pkl'),
-                            ('scaler', 'src/scaler.pkl'),
-                            ('body_image', 'src/body.jpg'),
-                            ('gender_smoke', 'src/Gender_smoking.png'),
-                            ('gtp', 'src/GTP.png'),
-                            ('hemo', 'src/hemoglobine_gender.png'),
-                            ('trigly', 'src/Triglyceride.png')]:
+        for key, s3_key in [('model', 'random_forest_model_Default.pkl'),
+                            ('scaler', 'scaler.pkl'),
+                            ('body_image', 'body.jpg'),
+                            ('gender_smoke', 'Gender_smoking.png'),
+                            ('gtp', 'GTP.png'),
+                            ('hemo', 'hemoglobine_gender.png'),
+                            ('trigly', 'Triglyceride.png')]:
             local_path = paths[key]
             if not os.path.exists(local_path):
-                logging.warning(f"File {local_path} not found, attempting download from {s3_key}")
                 s3.download_file(BUCKET_NAME, s3_key, local_path)
                 logging.info(f"Downloaded {s3_key} from S3 as fallback.")
     except Exception as e:
@@ -131,14 +130,8 @@ def main():
 
     download_s3_files()  # Asegura archivos como respaldo
     ensure_files(BASE_PATH, IS_AWS, IS_LAMBDA)
-    try:
-        db = DatabaseManager(IS_AWS, IS_LAMBDA)
-        model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
-        logging.info("Database, model, and scaler initialized successfully")
-    except Exception as e:
-        st.error(f"Initialization failed: {str(e)}")
-        logging.error(f"Initialization failed: {str(e)}")
-        st.stop()
+    db = DatabaseManager(IS_AWS, IS_LAMBDA)
+    model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
 
     if selection == "Home":
         home()
