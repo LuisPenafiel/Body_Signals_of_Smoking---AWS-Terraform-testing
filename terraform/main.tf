@@ -118,6 +118,21 @@ resource "aws_key_pair" "smoking_key" {
   public_key = var.ec2_public_key
 }
 
+resource "aws_ebs_volume" "smoking_ebs" {
+  availability_zone = "${var.AWS_REGION}a"
+  size              = 8  # Mínimo gratuito para Free Tier
+  tags = {
+    Name        = "SmokingAppEBS-${var.env}"
+    Environment = var.env
+  }
+}
+
+resource "aws_volume_attachment" "smoking_ebs_attachment" {
+  device_name = "/dev/xvdf"
+  volume_id   = aws_ebs_volume.smoking_ebs.id
+  instance_id = aws_instance.smoking_app_dev.id
+}
+
 resource "aws_instance" "smoking_app_dev" {
   ami                         = "ami-05b91990f4b2d588f"
   instance_type               = var.instance_type
@@ -127,34 +142,32 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-user_data = base64encode(<<EOF
-#!/bin/bash
-sudo apt update -y
-sudo apt install -y python3-pip git awscli net-tools
-cd /home/ubuntu
-mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
-aws s3 sync s3://smoking-body-signals-data-dev/src/ /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src/ --quiet
-if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
-chown -R ubuntu:ubuntu /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing
-cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
-export PATH=$PATH:/home/ubuntu/.local/bin
-if [ -f requirements.txt ]; then
-  pip3 install scikit-learn==1.4.1.post1 -r requirements.txt || { echo "Pip install failed at $(date): $(pip3 install --verbose)" >> /home/ubuntu/install_error.log; exit 1; }
-else
-  echo "requirements.txt not found at $(date), installing minimal dependencies" >> /home/ubuntu/install_error.log
-  pip3 install scikit-learn==1.4.1.post1 streamlit==1.28.0 pandas==2.0.3 pillow==10.0.0 boto3==1.28.0 || { echo "Minimal install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
-fi
-export AWS_REGION=eu-central-1
-nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.enableCORS false --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
-sleep 5
-if ! pgrep -f streamlit > /dev/null; then
-  echo "Streamlit failed to start at $(date). Check logs:" >> /home/ubuntu/streamlit.log
-  cat /home/ubuntu/streamlit.log >> /home/ubuntu/streamlit.log
-fi
-echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
-netstat -tuln >> /home/ubuntu/network_check.log 2>&1
-EOF
-)
+  # Sin depends_on para evitar ciclos
+  user_data = base64encode(<<EOF
+  #!/bin/bash
+  sudo apt update -y
+  sudo apt install -y python3-pip python3-venv awscli net-tools
+  python3 -m venv /home/ubuntu/smoking-env
+  source /home/ubuntu/smoking-env/bin/activate
+  mkdir -p /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
+  cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
+  aws s3 cp s3://smoking-body-signals-data-dev/src/random_forest_model_Default.pkl ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/scaler.pkl ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/body.jpg ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/Gender_smoking.png ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/GTP.png ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/hemoglobine_gender.png ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/Triglyceride.png ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/app.py ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/data_utils.py ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/db_utils.py ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/prediction.py ./
+  aws s3 cp s3://smoking-body-signals-data-dev/src/requirements.txt ./
+  pip install -r requirements.txt --no-cache-dir || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
+  export AWS_REGION=eu-central-1
+  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
+  EOF
+  )
 
   tags = {
     Name        = "SmokingAppDev"

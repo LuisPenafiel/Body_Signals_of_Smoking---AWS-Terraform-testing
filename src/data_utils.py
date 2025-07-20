@@ -1,10 +1,12 @@
 import os
 import boto3
-from pickle import load
+from joblib import load  # Usamos joblib para mejor compatibilidad con scikit-learn
 import streamlit as st
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 def get_file_paths(base_path):
-    """Devuelve un diccionario con las rutas de los archivos necesarios."""
     return {
         'model': os.path.join(base_path, 'random_forest_model_Default.pkl'),
         'scaler': os.path.join(base_path, 'scaler.pkl'),
@@ -16,7 +18,6 @@ def get_file_paths(base_path):
     }
 
 def ensure_files(base_path, is_aws, is_lambda, bucket_name='smoking-body-signals-data-dev', region_name='eu-central-1'):
-    """Asegura que los archivos necesarios estén disponibles."""
     try:
         s3 = boto3.client('s3', region_name=region_name) if is_aws and not is_lambda else None
         paths = get_file_paths(base_path)
@@ -31,24 +32,20 @@ def ensure_files(base_path, is_aws, is_lambda, bucket_name='smoking-body-signals
                 local_path = paths[key]
                 if not os.path.exists(local_path):
                     s3.download_file(bucket_name, s3_key, local_path)
-                    st.success(f"Downloaded {s3_key} from S3.")
+                    logging.info(f"Downloaded {s3_key} from S3.")
         else:
             for key, local_path in paths.items():
                 if not os.path.exists(local_path):
-                    st.error(f"File not found: {local_path}. Place it in {base_path}.")
-                    st.stop()
+                    logging.error(f"File not found: {local_path}.")
+                    # No st.stop(), permitimos continuar
     except Exception as e:
-        st.error(f"File handling error: {e}")
-        st.rerun()
+        logging.error(f"File handling error: {e}")
 
 def load_model_and_scaler(model_path, scaler_path):
-    """Carga el modelo y el escalador desde los archivos especificados."""
     try:
-        with open(model_path, 'rb') as f:
-            model = load(f)
-        with open(scaler_path, 'rb') as f:
-            scaler = load(f)
+        model = load(model_path)
+        scaler = load(scaler_path)
         return model, scaler
-    except FileNotFoundError as e:
-        st.error(f"Error loading model or scaler: {e}")
-        st.stop()
+    except Exception as e:
+        logging.error(f"Error loading model or scaler: {e}")
+        raise

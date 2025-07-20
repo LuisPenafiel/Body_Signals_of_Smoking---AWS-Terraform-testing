@@ -7,3 +7,4 @@ pandas==2.3.1  # Data processing for predictions
 pillow==11.3.0  # Image handling in Streamlit UI
 scikit-learn==1.4.1.post1  # Exact match for model training/unpickling (RandomForest, StandardScaler)
 streamlit==1.46.1  # Web UI framework
+joblib==1.4.2

@@ -4,28 +4,46 @@ from PIL import Image
 from data_utils import get_file_paths, ensure_files, load_model_and_scaler
 from db_utils import DatabaseManager
 from prediction import prediction
+import boto3
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 # --- Environment Detection ---
 IS_AWS = 'AWS_REGION' in os.environ or 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
 IS_LAMBDA = 'AWS_LAMBDA_FUNCTION_NAME' in os.environ
 
-# --- File Configuration ---
+# --- S3 and File Configuration ---
+BUCKET_NAME = 'smoking-body-signals-data-dev'
+REGION_NAME = 'eu-central-1'
 BASE_PATH = '/home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src' if IS_AWS and not IS_LAMBDA else '/tmp' if IS_AWS and IS_LAMBDA else '/workspaces/Body_Signals_of_Smoking---AWS-Terraform-testing/src'
 paths = get_file_paths(BASE_PATH)
+
+# --- Download Function from Old Code ---
+def download_s3_files():
+    if not IS_AWS:
+        return
+    try:
+        s3 = boto3.client('s3', region_name=REGION_NAME)
+        for key, s3_key in [('model', 'random_forest_model_Default.pkl'),
+                            ('scaler', 'scaler.pkl'),
+                            ('body_image', 'body.jpg'),
+                            ('gender_smoke', 'Gender_smoking.png'),
+                            ('gtp', 'GTP.png'),
+                            ('hemo', 'hemoglobine_gender.png'),
+                            ('trigly', 'Triglyceride.png')]:
+            local_path = paths[key]
+            if not os.path.exists(local_path):
+                s3.download_file(BUCKET_NAME, s3_key, local_path)
+                logging.info(f"Downloaded {s3_key} from S3 as fallback.")
+    except Exception as e:
+        logging.error(f"Error downloading from S3: {e}")
 
 # --- Sections ---
 def home():
     st.markdown("<div class='header'><h1><i class='fas fa-lungs'></i> Body Signals of Smoking</h1><p class='slogan animate__animated animate__fadeIn'>Empowering Health Awareness</p></div>", unsafe_allow_html=True)
-    st.markdown("""
-        <style>
-            .content-text { font-family: 'Roboto', sans-serif; font-weight: bold; color: #2C3E50; line-height: 1.6; }
-        </style>
-    """, unsafe_allow_html=True)
-    st.markdown("""
-        <div class='content-text'>
-            In today's era, cigarettes pose serious risks. Research highlights health issues from cardiovascular diseases to sensory impairments. The 'Body Signals of Smoking' project uses biomarkers to predict smoking, aiding early detection.
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<style>.content-text { font-family: 'Roboto', sans-serif; font-weight: bold; color: #2C3E50; line-height: 1.6; }</style>", unsafe_allow_html=True)
+    st.markdown("<div class='content-text'>In today's era, cigarettes pose risks. Research highlights health issues. This project predicts smoking with biomarkers.</div>", unsafe_allow_html=True)
     col1, col2 = st.columns([2, 1])
     with col1:
         try:
@@ -110,13 +128,10 @@ def main():
     st.sidebar.title("Menu")
     selection = st.sidebar.radio("Navigation", ["Home", "Relevant Data", "Prediction", "Limitations"], label_visibility="collapsed")
 
-    try:
-        ensure_files(BASE_PATH, IS_AWS, IS_LAMBDA)
-        db = DatabaseManager(IS_AWS, IS_LAMBDA)
-        model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
-    except Exception as e:
-        st.error(f"Initialization error: {str(e)}")
-        st.stop()
+    download_s3_files()  # Asegura archivos como respaldo
+    ensure_files(BASE_PATH, IS_AWS, IS_LAMBDA)
+    db = DatabaseManager(IS_AWS, IS_LAMBDA)
+    model, scaler = load_model_and_scaler(paths['model'], paths['scaler'])
 
     if selection == "Home":
         home()

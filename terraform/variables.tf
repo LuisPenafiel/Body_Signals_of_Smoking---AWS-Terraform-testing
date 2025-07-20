@@ -1,26 +1,3 @@
-# # /terraform/variables.tf
-# 
-# variable "region" {
-#   description = "AWS region"
-#   default     = "eu-central-1"  # Fráncfort, Alemania (ideal para Múnich)
-# }
-# 
-# variable "env" {
-#   description = "Environment name"
-#   default     = "dev"
-# }
-# 
-# variable "db_password" {
-#   description = "Password for the RDS database"
-#   type        = string
-#   sensitive   = true
-# }
-
-# /terraform/variables.tf
-
-# /workspaces/Body_Signals_of_Smoking---AWS-Terraform-testing/terraform/variables.tf
-# variables.tf
-
 variable "AWS_REGION" {
   description = "The AWS region where resources will be created (e.g., eu-central-1)"
   type        = string
