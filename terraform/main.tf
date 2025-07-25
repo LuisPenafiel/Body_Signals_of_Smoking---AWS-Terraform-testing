@@ -36,8 +36,6 @@ module "vpc" {
 
   tags = {
     Environment = var.env
-    CostCenter  = "smoking-research"
-    AutoDelete  = "true"
   }
 }
 
@@ -57,7 +55,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Temporary; replace with your IP for security
+    cidr_blocks = ["0.0.0.0/0"]  # Temporal; reemplaza con tu IP (e.g., "159.148.204.121/32") para seguridad
   }
 
   ingress {
@@ -88,18 +86,6 @@ resource "aws_s3_bucket" "smoking_data_dev" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "data_cleanup" {
-  bucket = aws_s3_bucket.smoking_data_dev.id
-
-  rule {
-    id     = "auto-delete"
-    status = "Enabled"
-    expiration {
-      days = 30  # Delete files after 30 days
-    }
-  }
-}
-
 resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
   bucket = aws_s3_bucket.smoking_data_dev.id
 
@@ -108,9 +94,9 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
     Statement = [
       {
         Effect    = "Allow"
-        Principal = {"AWS": aws_iam_role.ec2_s3_role.arn}
+        Principal = "*"
         Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.smoking_data_dev.arn}/src/*"
+        Resource  = "${aws_s3_bucket.smoking_data_dev.arn}/*"
       }
     ]
   })
@@ -122,7 +108,7 @@ resource "aws_key_pair" "smoking_key" {
 }
 
 resource "aws_instance" "smoking_app_dev" {
-  ami                         = "ami-05b91990f4b2d588f"
+  ami                         = "ami-0dc33c9c954b3f073"  # Ubuntu 22.04 LTS, actualizado 2025-07-12
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.smoking_key.key_name
   vpc_security_group_ids      = [aws_security_group.smoking_sg.id]
@@ -130,46 +116,26 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
-  instance_market_options {
-    market_type = "spot"
-    spot_options {
-      max_price = "0.003"  # 50% of on-demand price for t2.micro
-    }
-  }
-
   user_data = base64encode(<<EOF
   #!/bin/bash
-  set -x
   sudo apt update -y
   sudo apt install -y python3-pip git awscli net-tools
   cd /home/ubuntu
-  git clone --depth=1 https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git
-  cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
-  aws s3 sync s3://smoking-body-signals-data-dev/src/ ./
+  mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
+  cd Body_Signals_of_Smoking---AWS-Terraform-testing/src
+  aws s3 sync s3://smoking-body-signals-data-dev/src/ . --quiet
   if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
   pip3 install -r requirements.txt --no-cache-dir || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
   export AWS_REGION=eu-central-1
-  # Comment out auto-shutdown for persistent web
-  # echo '#!/bin/bash\nsleep 3600\nif ! who | grep -q pts; then\n  shutdown -h now\nfi' > /home/ubuntu/auto-shutdown.sh
-  # chmod +x /home/ubuntu/auto-shutdown.sh
-  # nohup /home/ubuntu/auto-shutdown.sh &
   nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
-  sleep 10
-  if ! pgrep -f streamlit > /dev/null; then
-    echo "Streamlit failed to start at $(date). Check logs:" >> /home/ubuntu/streamlit.log
-    cat /home/ubuntu/streamlit.log >> /home/ubuntu/streamlit.log
-  fi
   echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
   netstat -tuln >> /home/ubuntu/network_check.log 2>&1
   EOF
   )
 
-  disable_api_termination = false
   tags = {
     Name        = "SmokingAppDev"
     Environment = var.env
-    CostCenter  = "smoking-research"
-    AutoDelete  = "true"
   }
 }
 
@@ -207,8 +173,8 @@ resource "aws_iam_role_policy" "ec2_s3_extended" {
     Version = "2012-10-17"
     Statement = [{
       Effect   = "Allow"
-      Action   = ["s3:GetObject", "s3:ListBucket"]
-      Resource = ["${aws_s3_bucket.smoking_data_dev.arn}", "${aws_s3_bucket.smoking_data_dev.arn}/src/*"]
+      Action   = ["s3:Get*", "s3:List*"]
+      Resource = "*"
     }]
   })
 }
