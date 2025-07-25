@@ -5,6 +5,8 @@ import pandas as pd
 from botocore.exceptions import ClientError
 import logging
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 class DatabaseManager:
     def __init__(self, is_aws, is_lambda):
         """Inicializa la conexión a la base de datos según el entorno."""
@@ -29,6 +31,7 @@ class DatabaseManager:
                 if not self.is_lambda:
                     self.upload_to_s3()
             else:
+                logging.error(f"AWS S3 error: {e}")
                 raise
     
     def setup_local_db(self):
@@ -61,7 +64,11 @@ class DatabaseManager:
     
     def upload_to_s3(self):
         s3 = boto3.client('s3')
-        s3.upload_file(self.local_db_path, self.s3_bucket, self.s3_key)
+        try:
+            s3.upload_file(self.local_db_path, self.s3_bucket, self.s3_key)
+            logging.info("Database uploaded to S3 successfully")
+        except Exception as e:
+            logging.error(f"Failed to upload to S3: {e}")
     
     def get_predictions(self):
         conn = sqlite3.connect(self.local_db_path)

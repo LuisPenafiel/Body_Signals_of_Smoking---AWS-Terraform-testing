@@ -36,6 +36,8 @@ module "vpc" {
 
   tags = {
     Environment = var.env
+    CostCenter  = "smoking-research"
+    AutoDelete  = "true"
   }
 }
 
@@ -55,7 +57,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"]  # Temporary; replace with your IP for security
   }
 
   ingress {
@@ -86,13 +88,16 @@ resource "aws_s3_bucket" "smoking_data_dev" {
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "smoking_data_dev_block" {
+resource "aws_s3_bucket_lifecycle_configuration" "data_cleanup" {
   bucket = aws_s3_bucket.smoking_data_dev.id
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  rule {
+    id     = "auto-delete"
+    status = "Enabled"
+    expiration {
+      days = 30  # Delete files after 30 days
+    }
+  }
 }
 
 resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
@@ -103,14 +108,12 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
     Statement = [
       {
         Effect    = "Allow"
-        Principal = "*"
+        Principal = {"AWS": aws_iam_role.ec2_s3_role.arn}
         Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.smoking_data_dev.arn}/*"
+        Resource  = "${aws_s3_bucket.smoking_data_dev.arn}/src/*"
       }
     ]
   })
-
-  depends_on = [aws_s3_bucket_public_access_block.smoking_data_dev_block]
 }
 
 resource "aws_key_pair" "smoking_key" {
@@ -127,35 +130,46 @@ resource "aws_instance" "smoking_app_dev" {
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
+  instance_market_options {
+    market_type = "spot"
+    spot_options {
+      max_price = "0.003"  # 50% of on-demand price for t2.micro
+    }
+  }
+
   user_data = base64encode(<<EOF
   #!/bin/bash
+  set -x
   sudo apt update -y
-  sudo apt install -y python3-pip python3-venv awscli net-tools
-  python3 -m venv /home/ubuntu/smoking-env
-  source /home/ubuntu/smoking-env/bin/activate
-  mkdir -p /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
+  sudo apt install -y python3-pip git awscli net-tools
+  cd /home/ubuntu
+  git clone --depth=1 https://github.com/LuisPenafiel/Body_Signals_of_Smoking---AWS-Terraform-testing.git
   cd /home/ubuntu/Body_Signals_of_Smoking---AWS-Terraform-testing/src
-  aws s3 cp s3://smoking-body-signals-data-dev/random_forest_model_Default.pkl ./
-  aws s3 cp s3://smoking-body-signals-data-dev/scaler.pkl ./
-  aws s3 cp s3://smoking-body-signals-data-dev/body.jpg ./
-  aws s3 cp s3://smoking-body-signals-data-dev/Gender_smoking.png ./
-  aws s3 cp s3://smoking-body-signals-data-dev/GTP.png ./
-  aws s3 cp s3://smoking-body-signals-data-dev/hemoglobine_gender.png ./
-  aws s3 cp s3://smoking-body-signals-data-dev/Triglyceride.png ./
-  aws s3 cp s3://smoking-body-signals-data-dev/app.py ./
-  aws s3 cp s3://smoking-body-signals-data-dev/data_utils.py ./
-  aws s3 cp s3://smoking-body-signals-data-dev/db_utils.py ./
-  aws s3 cp s3://smoking-body-signals-data-dev/prediction.py ./
-  aws s3 cp s3://smoking-body-signals-data-dev/requirements.txt ./
-  pip install -r requirements.txt --no-cache-dir || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
+  aws s3 sync s3://smoking-body-signals-data-dev/src/ ./
+  if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
+  pip3 install -r requirements.txt --no-cache-dir || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
   export AWS_REGION=eu-central-1
+  # Comment out auto-shutdown for persistent web
+  # echo '#!/bin/bash\nsleep 3600\nif ! who | grep -q pts; then\n  shutdown -h now\nfi' > /home/ubuntu/auto-shutdown.sh
+  # chmod +x /home/ubuntu/auto-shutdown.sh
+  # nohup /home/ubuntu/auto-shutdown.sh &
   nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
+  sleep 10
+  if ! pgrep -f streamlit > /dev/null; then
+    echo "Streamlit failed to start at $(date). Check logs:" >> /home/ubuntu/streamlit.log
+    cat /home/ubuntu/streamlit.log >> /home/ubuntu/streamlit.log
+  fi
+  echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
+  netstat -tuln >> /home/ubuntu/network_check.log 2>&1
   EOF
   )
 
+  disable_api_termination = false
   tags = {
     Name        = "SmokingAppDev"
     Environment = var.env
+    CostCenter  = "smoking-research"
+    AutoDelete  = "true"
   }
 }
 
@@ -170,22 +184,6 @@ resource "aws_eip" "smoking_eip" {
 
 output "ec2_public_ip" {
   value = aws_eip.smoking_eip.public_ip
-}
-
-resource "aws_cloudwatch_metric_alarm" "cpu_alarm" {
-  alarm_name          = "ec2-cpu-alarm"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = "120"
-  statistic           = "Average"
-  threshold           = "80"
-  alarm_description   = "This metric monitors ec2 cpu utilization exceeding 80%"
-  alarm_actions       = []
-  dimensions = {
-    InstanceId = aws_instance.smoking_app_dev.id
-  }
 }
 
 resource "aws_iam_role" "ec2_s3_role" {
@@ -209,8 +207,8 @@ resource "aws_iam_role_policy" "ec2_s3_extended" {
     Version = "2012-10-17"
     Statement = [{
       Effect   = "Allow"
-      Action   = ["s3:*", "ec2:CreateImage"]
-      Resource = "*"
+      Action   = ["s3:GetObject", "s3:ListBucket"]
+      Resource = ["${aws_s3_bucket.smoking_data_dev.arn}", "${aws_s3_bucket.smoking_data_dev.arn}/src/*"]
     }]
   })
 }
@@ -218,14 +216,4 @@ resource "aws_iam_role_policy" "ec2_s3_extended" {
 resource "aws_iam_instance_profile" "ec2_s3_profile" {
   name = "ec2_s3_profile"
   role = aws_iam_role.ec2_s3_role.name
-}
-
-resource "aws_cloudwatch_log_group" "streamlit_logs" {
-  name              = "/aws/ec2/smoking-app-logs"
-  retention_in_days = 7
-}
-
-resource "aws_cloudwatch_log_stream" "streamlit_stream" {
-  name           = "streamlit-log-stream"
-  log_group_name = aws_cloudwatch_log_group.streamlit_logs.name
 }
