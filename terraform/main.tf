@@ -55,7 +55,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["159.148.204.121/32"]  # Restrict to your IP; update as needed
+    cidr_blocks = ["2.206.152.175/32"]  # Restringido a tu IP para mayor seguridad en SSH
   }
 
   ingress {
@@ -94,7 +94,7 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
     Statement = [
       {
         Effect    = "Allow"
-        Principal = "*"  # TODO: Restrict to EC2 IAM role for production
+        Principal = "*"
         Action    = "s3:GetObject"
         Resource  = "${aws_s3_bucket.smoking_data_dev.arn}/*"
       }
@@ -108,7 +108,7 @@ resource "aws_key_pair" "smoking_key" {
 }
 
 resource "aws_instance" "smoking_app_dev" {
-  ami                         = "ami-0dc33c9c954b3f073"  # Ubuntu 22.04 LTS, updated 2025-07-12
+  ami                         = "ami-0dc33c9c954b3f073"  # Ubuntu 22.04 LTS, actualizado 2025-07-12
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.smoking_key.key_name
   vpc_security_group_ids      = [aws_security_group.smoking_sg.id]
