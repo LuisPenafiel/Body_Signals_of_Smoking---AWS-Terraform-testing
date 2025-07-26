@@ -55,7 +55,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Revertido temporalmente para permitir SSH desde cualquier IP
+    cidr_blocks = ["20.61.126.209/32"]  # Restringido a tu IP(codespaces)para mayor seguridad en SSH
   }
 
   ingress {
