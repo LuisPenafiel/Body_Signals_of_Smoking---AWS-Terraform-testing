@@ -464,72 +464,105 @@ Current Status
 🟢 Fully functional for local testing
 ✅ No critical errors remaining
 
-# Day 6: AWS Infrastructure & EC2 Deployment  
-**Thursday, July 10, 2025**  
+# Body Signals of Smoking
 
-## ✅ **Tasks Completed**  
+## Proyecto de Despliegue en AWS Free Tier
 
-### **Infrastructure (Terraform)**  
-- **S3 Configuration**:  
-  - Set up bucket with public access block and policy for file/DB storage.  
-  - Resolved drift via `terraform import` for bucket, policy, and access block.  
-- **EC2 Deployment**:  
-  - Launched Ubuntu 22.04 LTS instance with:  
-    - SSH key pair (`smoking-ec2-key`).  
-    - User data script for auto-setup.  
-
-### **Automation & Deployment**  
-- **S3 Uploads**:  
-  - Automated model/scaler/image uploads via `s3/upload_to_s3.sh` (fixed with `chmod +x`).  
-- **EC2 Setup**:  
-  - Installed dependencies:  
-    ```bash
-    Python, pip, git, Streamlit, pandas, scikit-learn, boto3, pillow
-    ```  
-  - Cloned repo and launched Streamlit app on port `8501`.  
-  - Configured AWS detection with `IS_AWS=True` environment variable.  
+Este proyecto implementa una aplicación Streamlit para predecir el estado de fumador mediante biomarcadores, desplegada en AWS Free Tier. A continuación, se detalla el progreso, desafíos, y soluciones desde los Días 6 y 7.
 
 ---
 
-## 📝 **Notes**  
-- **Access**: App live at EC2 public DNS (`http://<DNS>:8501`), S3 downloads functional.  
-- **Cost**: All resources within AWS Free Tier (no charges incurred).  
-- **Debugging Highlights**:  
-  - Fixed `Permission denied` for S3 uploads via IAM role (`AmazonS3FullAccess`).  
-  - Resolved deprecated Streamlit function (`st.experimental_rerun()` → `st.rerun()`).  
+### Día 6: AWS Infrastructure & EC2 Deployment
+**Fecha:** Jueves, 10 de julio de 2025  
+**Estado:** ✅ Completado
+
+#### ✅ Tareas Completadas
+- **Infrastructure (Terraform)**:
+  - Configurada una VPC básica con subnets públicas y privadas en eu-central-1.
+  - Creado un bucket S3 (`smoking-body-signals-data-dev`) con política pública para almacenamiento de archivos y base de datos.
+  - Resuelto drift inicial importando recursos (bucket, policy, access block) con `terraform import`.
+- **EC2 Deployment**:
+  - Lanzada una instancia EC2 t2.micro con AMI Ubuntu 22.04 LTS (`ami-0dc33c9c954b3f073`).
+  - Configurado par de claves SSH (`smoking-ec2-key`) y script `user_data` para auto-setup.
+- **Automation & Deployment**:
+  - **S3 Uploads**: Automatizados subidas de `random_forest_model_Default.pkl`, `scaler.pkl`, `body.jpg`, `Gender_smoking.png`, `GTP.png`, `hemoglobine_gender.png`, `Triglyceride.png`, y `requirements.txt` via AWS CLI.
+  - **EC2 Setup**: Instaladas dependencias (`python3-pip`, `git`, `awscli`, `net-tools`, Streamlit, pandas, scikit-learn, boto3, pillow) y lanzado Streamlit en puerto 8501.
+  - Configurada detección AWS con `IS_AWS` y `IS_LAMBDA` en `app.py`.
+
+#### 📝 Notas
+- **Acceso**: Aplicación accesible en `http://18.198.181.6:8501` tras sincronización S3.
+- **Costo**: Recursos dentro de AWS Free Tier (t2.micro hasta 750 horas/mes, 5GB S3 gratis por un año).
+- **Debugging Highlights**:
+  - Corregido error de permisos en S3 con IAM role `ec2_s3_read_role`.
+  - Actualizado `st.experimental_rerun()` a `st.rerun()` por depreciación.
+  - Ajustada AMI inválida (`ami-05b91990f4b2d588f`) a `ami-0dc33c9c954b3f073`.
+
+#### 🚨 Challenges & Solutions
+| **Challenge**                  | **Solution**                                                                 |
+|--------------------------------|-----------------------------------------------------------------------------|
+| S3 BucketAlreadyExists         | Importado estado con `terraform import`, eliminado duplicados con `state rm`. |
+| SSH "Permission denied"        | Ajustados permisos de clave (`chmod 400 ~/.ssh/smoking-ec2-key`).            |
+| Streamlit Port 8501 in Use     | Matado procesos previos (`ps aux | grep streamlit` → `kill -9 PID`).         |
+| Boto3 Credential Errors        | Configurado `AWS_REGION=eu-central-1` y rol IAM para acceso S3.              |
+| AMI Validation Failed          | Actualizada AMI vía `aws ec2 describe-images` a versión válida.              |
+
+#### Current Status
+- 🟢 **Deployment Successful**: Predicciones operativas con feedback visual.
+- Sin errores críticos tras depuración.
+
+#### 🔜 Next Steps
+- Seguridad: Implementar HTTPS.
+- Monitoring: Configurar alertas básicas (sin CloudWatch por costos).
+- Optimization: Mejorar `user_data` para tolerancia a fallos.
+- Logging: Añadir tracking detallado.
 
 ---
 
-## 🚨 **Challenges & Solutions**  
+### Día 7: Optimization & Scalability
+**Fecha:** Sábado, 12 de julio de 2025 - Viernes, 25 de julio de 2025  
+**Estado:** ✅ Completado con reversiones
 
-| **Challenge**                  | **Solution**                                                                 |  
-|--------------------------------|-----------------------------------------------------------------------------|  
-| **S3 BucketAlreadyExists**     | Imported resources to Terraform state, removed duplicates with `state rm`.  |  
-| **SSH "Permission denied"**    | Set key permissions (`chmod 400 ~/.ssh/smoking-ec2-key`).                   |  
-| **Streamlit Port 8501 in Use** | Killed existing process (`ps aux \| grep streamlit` → `kill -9 PID`).       |  
-| **Boto3 Credential Errors**    | Configured `AWS_REGION=eu-central-1` + IAM role for S3 access.              |  
-| **AMI Validation Failed**      | Updated `main.tf` with correct AMI ID (via `aws ec2 describe-images`).     |  
+#### 🔜 Tareas Planificadas (Iniciales)
+- Crear paquete de despliegue EC2.
+- Configurar AMI con dependencias preinstaladas.
+- Preparar scripts `user_data` optimizados.
+- Probar despliegue local.
 
----
+#### ✅ Tareas Completadas
+- **Optimization Attempts**:
+  - Introducidos spot instances y auto-shutdown para reducir costos, pero causaron inestabilidad (reinstancias automáticas).
+  - Simplificado `user_data` eliminando git clone, confiando en S3 sync.
+- **Security Enhancements**:
+  - Ajustado IAM role `ec2_s3_read_role` para permisos mínimos (`s3:Get*`, `s3:List*`).
+  - Intentado restringir SSH a IP específica, pero revertido a `0.0.0.0/0` temporalmente.
+- **Scalability Exploration**:
+  - Considerada Lambda, pero pospuesta por complejidad.
+  - Revertido a configuración básica tras fallos (e.g., AMI inválida, sync errores).
 
-## **Current Status**  
-🟢 **Deployment Successful**  
-- Predictions operational with visual feedback.  
-- No active errors after debugging.  
+#### 📝 Notas
+- **Costo**: Manteniendo Free Tier; eliminados snapshots manualmente, evitado EBS/CloudWatch.
+- **Debugging Highlights**:
+  - Corregido `TypeError: use_container_width` eliminándolo de `app.py`.
+  - Resuelto PATH de Streamlit con `export PATH=$PATH:~/.local/bin`.
+  - Ajustado sync manual en EC2 tras fallo de `user_data`.
 
----
+#### 🚨 Challenges & Solutions
+| **Challenge**                  | **Solution**                                                                 |
+|--------------------------------|-----------------------------------------------------------------------------|
+| Spot Instances Instability     | Revertido a instancia on-demand t2.micro por estabilidad.                   |
+| Auto-shutdown Failure          | Eliminado script de auto-shutdown para mantener web activa.                 |
+| S3 Sync Failure in user_data   | Sincronización manual vía SSH y actualización de `user_data`.               |
+| Streamlit Installation Error   | Forzado reinstalación con `pip3 install --force-reinstall` y PATH correcto. |
+| Host Key Changed               | Eliminada clave antigua con `ssh-keygen -R`.                                |
 
-## 🔜 **Next Steps**  
-- **Security**: Add HTTPS encryption.  
-- **Monitoring**: Set up CloudWatch alerts.  
-- **Optimization**: Enhance user data script for fault tolerance.  
-- **Logging**: Implement detailed error tracking.  
-#### Day 7 (Saturday, July 12, 2025)
-🔜 **Planned Tasks**:
-- Create EC2 deployment package
-- Configure AMI with dependencies
-- Prepare user data scripts
-- Test local deployment
+#### Current Status
+- 🟢 **Optimized Deployment**: Aplicación funcional en `18.198.181.6:8501` con S3 sync y base de datos local.
+- Revertido a enfoque básico tras optimizaciones fallidas.
+
+#### 🔜 Next Steps
+- Seguridad: Restringir SSH a IP específica.
+- Escalabilidad: Explorar Lambda en Día 9.
+- Documentación: Actualizar README con lecciones aprendidas.
 
 #### Day 8 (Monday, July 14, 2025)
 🔜 **Planned Tasks**:

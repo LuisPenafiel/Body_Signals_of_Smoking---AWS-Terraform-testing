@@ -55,7 +55,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Temporal; reemplaza con tu IP (e.g., "159.148.204.121/32") para seguridad
+    cidr_blocks = ["159.148.204.121/32"]  # Restrict to your IP; update as needed
   }
 
   ingress {
@@ -94,7 +94,7 @@ resource "aws_s3_bucket_policy" "smoking_data_dev_policy" {
     Statement = [
       {
         Effect    = "Allow"
-        Principal = "*"
+        Principal = "*"  # TODO: Restrict to EC2 IAM role for production
         Action    = "s3:GetObject"
         Resource  = "${aws_s3_bucket.smoking_data_dev.arn}/*"
       }
@@ -108,7 +108,7 @@ resource "aws_key_pair" "smoking_key" {
 }
 
 resource "aws_instance" "smoking_app_dev" {
-  ami                         = "ami-0dc33c9c954b3f073"  # Ubuntu 22.04 LTS, actualizado 2025-07-12
+  ami                         = "ami-0dc33c9c954b3f073"  # Ubuntu 22.04 LTS, updated 2025-07-12
   instance_type               = var.instance_type
   key_name                    = aws_key_pair.smoking_key.key_name
   vpc_security_group_ids      = [aws_security_group.smoking_sg.id]
@@ -117,20 +117,45 @@ resource "aws_instance" "smoking_app_dev" {
   iam_instance_profile        = aws_iam_instance_profile.ec2_s3_profile.name
 
   user_data = base64encode(<<EOF
-  #!/bin/bash
-  sudo apt update -y
-  sudo apt install -y python3-pip git awscli net-tools
-  cd /home/ubuntu
-  mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
-  cd Body_Signals_of_Smoking---AWS-Terraform-testing/src
-  aws s3 sync s3://smoking-body-signals-data-dev/src/ . --quiet
-  if [ $? -ne 0 ]; then echo "S3 sync failed at $(date)" >> /home/ubuntu/sync_error.log; exit 1; fi
-  pip3 install -r requirements.txt --no-cache-dir || { echo "Pip install failed at $(date)" >> /home/ubuntu/install_error.log; exit 1; }
-  export AWS_REGION=eu-central-1
-  nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
-  echo "Streamlit started at $(date) with PID $$ at http://18.198.181.6:8501" >> /home/ubuntu/streamlit.log
-  netstat -tuln >> /home/ubuntu/network_check.log 2>&1
-  EOF
+#!/bin/bash
+set -e  # Exit on error
+LOG_FILE=/home/ubuntu/setup.log
+echo "Starting setup at $(date)" > $LOG_FILE 2>&1
+sudo apt update -y >> $LOG_FILE 2>&1
+sudo apt install -y python3-pip git awscli net-tools >> $LOG_FILE 2>&1
+pip3 install --upgrade pip >> $LOG_FILE 2>&1
+cd /home/ubuntu
+mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
+cd Body_Signals_of_Smoking---AWS-Terraform-testing/src
+aws s3 sync s3://smoking-body-signals-data-dev/src/ . --quiet >> $LOG_FILE 2>&1
+if [ $? -ne 0 ]; then
+  echo "S3 sync failed at $(date)" >> $LOG_FILE
+  exit 1
+fi
+pip3 install -r requirements.txt --no-cache-dir >> $LOG_FILE 2>&1 || {
+  echo "Pip install failed at $(date)" >> $LOG_FILE
+  exit 1
+}
+export AWS_REGION=eu-central-1
+export AWS_DEFAULT_REGION=eu-central-1
+# Start Streamlit with health check
+nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
+sleep 5
+if pgrep -f streamlit > /dev/null; then
+  PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+  echo "Streamlit started at $(date) with PID $(pgrep -f streamlit) at http://$PUBLIC_IP:8501" >> $LOG_FILE
+else
+  echo "Streamlit failed to start at $(date). Check logs." >> $LOG_FILE
+  cat /home/ubuntu/streamlit.log >> $LOG_FILE
+  exit 1
+fi
+netstat -tuln >> /home/ubuntu/network_check.log 2>&1
+echo "Setup complete at $(date)" >> $LOG_FILE
+# Optional auto-shutdown (comment out if not desired)
+# echo '#!/bin/bash\nwhile true; do\n  sleep 21600\n  if ! who | grep -q pts; then\n    shutdown -h now\n  fi\ndone' > /home/ubuntu/auto-shutdown.sh
+# chmod +x /home/ubuntu/auto-shutdown.sh
+# nohup /home/ubuntu/auto-shutdown.sh &
+EOF
   )
 
   tags = {

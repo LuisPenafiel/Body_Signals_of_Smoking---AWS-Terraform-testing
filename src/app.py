@@ -36,7 +36,7 @@ def home():
     col1, col2 = st.columns([2, 1])
     with col1:
         try:
-            st.image(Image.open(paths['body_image']), caption="Body Health Overview", use_container_width=True)
+            st.image(Image.open(paths['body_image']), caption="Body Health Overview")
         except FileNotFoundError:
             st.error("Image 'body.jpg' not found.")
 
@@ -46,26 +46,26 @@ def data():
     cols = st.columns(2)
     with cols[0]:
         try:
-            st.image(Image.open(paths['gender_smoke']), caption="Men Smoke More", use_container_width=True)
+            st.image(Image.open(paths['gender_smoke']), caption="Men Smoke More")
         except FileNotFoundError:
             st.error("Image 'Gender_smoking.png' not found.")
     with cols[1]:
         try:
-            st.image(Image.open(paths['hemo']), caption="Higher Hemoglobin", use_container_width=True)
+            st.image(Image.open(paths['hemo']), caption="Higher Hemoglobin")
         except FileNotFoundError:
             st.error("Image 'hemoglobine_gender.png' not found.")
     cols = st.columns(2)
     with cols[0]:
         try:
-            st.image(Image.open(paths['gtp']), caption="Elevated GTP", use_container_width=True)
+            st.image(Image.open(paths['gtp']), caption="Elevated GTP")
         except FileNotFoundError:
             st.error("Image 'GTP.png' not found.")
     with cols[1]:
         try:
-            st.image(Image.open(paths['trigly']), caption="Triglycerides", use_container_width=True)
+            st.image(Image.open(paths['trigly']), caption="Triglycerides")
         except FileNotFoundError:
             st.error("Image 'Triglyceride.png' not found.")
-
+            
 def limitations_future_improvement():
     st.header("Research Insights")
     st.markdown('<div class="research-badge">FUTURE HORIZONS</div>', unsafe_allow_html=True)
