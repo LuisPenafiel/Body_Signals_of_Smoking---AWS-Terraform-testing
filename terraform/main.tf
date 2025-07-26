@@ -55,7 +55,7 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["20.61.126.209/32"]  # Restringido a tu IP(codespaces)para mayor seguridad en SSH
+    cidr_blocks = ["0.0.0.0/0"]  # Abierto temporalmente, si se necesita mas seguridad, tenemos un script para buscar y update a AWS
   }
 
   ingress {
