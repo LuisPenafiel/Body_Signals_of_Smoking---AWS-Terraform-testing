@@ -472,97 +472,95 @@ Este proyecto implementa una aplicación Streamlit para predecir el estado de fu
 
 ---
 
-### Día 6: AWS Infrastructure & EC2 Deployment
-**Fecha:** Jueves, 10 de julio de 2025  
-**Estado:** ✅ Completado
+### Day 6: AWS Infrastructure & EC2 Deployment
+**Date:** Thursday, July 10, 2025  
+**Status:** ✅ Completed
 
-#### ✅ Tareas Completadas
+#### ✅ Tasks Completed
 - **Infrastructure (Terraform)**:
-  - Configurada una VPC básica con subnets públicas y privadas en eu-central-1.
-  - Creado un bucket S3 (`smoking-body-signals-data-dev`) con política pública para almacenamiento de archivos y base de datos.
-  - Resuelto drift inicial importando recursos (bucket, policy, access block) con `terraform import`.
+  - Configured a basic VPC with public and private subnets in eu-central-1.
+  - Created an S3 bucket (`smoking-body-signals-data-dev`) with a public policy for file and database storage.
+  - Resolved initial drift by importing resources (bucket, policy, access block) with `terraform import`.
 - **EC2 Deployment**:
-  - Lanzada una instancia EC2 t2.micro con AMI Ubuntu 22.04 LTS (`ami-0dc33c9c954b3f073`).
-  - Configurado par de claves SSH (`smoking-ec2-key`) y script `user_data` para auto-setup.
+  - Launched a t2.micro EC2 instance with Ubuntu 22.04 LTS AMI (`ami-0dc33c9c954b3f073`).
+  - Configured SSH key pair (`smoking-ec2-key`) and a `user_data` script for auto-setup.
 - **Automation & Deployment**:
-  - **S3 Uploads**: Automatizados subidas de `random_forest_model_Default.pkl`, `scaler.pkl`, `body.jpg`, `Gender_smoking.png`, `GTP.png`, `hemoglobine_gender.png`, `Triglyceride.png`, y `requirements.txt` via AWS CLI.
-  - **EC2 Setup**: Instaladas dependencias (`python3-pip`, `git`, `awscli`, `net-tools`, Streamlit, pandas, scikit-learn, boto3, pillow) y lanzado Streamlit en puerto 8501.
-  - Configurada detección AWS con `IS_AWS` y `IS_LAMBDA` en `app.py`.
+  - **S3 Uploads**: Automated uploads of `random_forest_model_Default.pkl`, `scaler.pkl`, `body.jpg`, `Gender_smoking.png`, `GTP.png`, `hemoglobine_gender.png`, `Triglyceride.png`, and `requirements.txt` via AWS CLI.
+  - **EC2 Setup**: Installed dependencies (`python3-pip`, `git`, `awscli`, `net-tools`, Streamlit, pandas, scikit-learn, boto3, pillow) and launched Streamlit on port 8501.
+  - Configured AWS detection with `IS_AWS` and `IS_LAMBDA` in `app.py`.
 
-#### 📝 Notas
-- **Acceso**: Aplicación accesible en `http://18.198.181.6:8501` tras sincronización S3.
-- **Costo**: Recursos dentro de AWS Free Tier (t2.micro hasta 750 horas/mes, 5GB S3 gratis por un año).
+#### 📝 Notes
+- **Access**: Application accessible at `http://18.198.181.6:8501` after S3 synchronization.
+- **Cost**: Resources within AWS Free Tier (t2.micro up to 750 hours/month, 5GB S3 free for one year).
 - **Debugging Highlights**:
-  - Corregido error de permisos en S3 con IAM role `ec2_s3_read_role`.
-  - Actualizado `st.experimental_rerun()` a `st.rerun()` por depreciación.
-  - Ajustada AMI inválida (`ami-05b91990f4b2d588f`) a `ami-0dc33c9c954b3f073`.
+  - Fixed S3 permission denied error with IAM role `ec2_s3_read_role`.
+  - Updated `st.experimental_rerun()` to `st.rerun()` due to deprecation.
+  - Adjusted invalid AMI (`ami-05b91990f4b2d588f`) to `ami-0dc33c9c954b3f073`.
 
 #### 🚨 Challenges & Solutions
 | **Challenge**                  | **Solution**                                                                 |
 |--------------------------------|-----------------------------------------------------------------------------|
-| S3 BucketAlreadyExists         | Importado estado con `terraform import`, eliminado duplicados con `state rm`. |
-| SSH "Permission denied"        | Ajustados permisos de clave (`chmod 400 ~/.ssh/smoking-ec2-key`).            |
-| Streamlit Port 8501 in Use     | Matado procesos previos (`ps aux | grep streamlit` → `kill -9 PID`).         |
-| Boto3 Credential Errors        | Configurado `AWS_REGION=eu-central-1` y rol IAM para acceso S3.              |
-| AMI Validation Failed          | Actualizada AMI vía `aws ec2 describe-images` a versión válida.              |
+| S3 BucketAlreadyExists         | Imported state with `terraform import`, removed duplicates with `state rm`.   |
+| SSH "Permission denied"        | Adjusted key permissions (`chmod 400 ~/.ssh/smoking-ec2-key`).               |
+| Streamlit Port 8501 in Use     | Killed existing processes (`ps aux | grep streamlit` → `kill -9 PID`).       |
+| Boto3 Credential Errors        | Configured `AWS_REGION=eu-central-1` and IAM role for S3 access.             |
+| AMI Validation Failed          | Updated AMI via `aws ec2 describe-images` to a valid version.                |
 
 #### Current Status
-- 🟢 **Deployment Successful**: Predicciones operativas con feedback visual.
-- Sin errores críticos tras depuración.
+- 🟢 **Deployment Successful**: Predictions operational with visual feedback.
+- No critical errors after debugging.
 
 #### 🔜 Next Steps
-- Seguridad: Implementar HTTPS.
-- Monitoring: Configurar alertas básicas (sin CloudWatch por costos).
-- Optimization: Mejorar `user_data` para tolerancia a fallos.
-- Logging: Añadir tracking detallado.
+- Security: Implement HTTPS.
+- Monitoring: Set up basic alerts (avoiding CloudWatch for costs).
+- Optimization: Improve `user_data` for fault tolerance.
+- Logging: Add detailed error tracking.
 
 ---
 
-### Día 7: Optimization & Scalability
-**Fecha:** Sábado, 12 de julio de 2025 - Viernes, 25 de julio de 2025  
-**Estado:** ✅ Completado con reversiones
+### Day 7: Optimization & Scalability
+**Date:** Saturday, July 12, 2025 - Friday, July 25, 2025  
+**Status:** ✅ Completed with Reversions
 
-#### 🔜 Tareas Planificadas (Iniciales)
-- Crear paquete de despliegue EC2.
-- Configurar AMI con dependencias preinstaladas.
-- Preparar scripts `user_data` optimizados.
-- Probar despliegue local.
+#### 🔜 Planned Tasks (Initial)
+- Create EC2 deployment package.
+- Configure AMI with preinstalled dependencies.
+- Prepare optimized `user_data` scripts.
+- Test local deployment.
 
-#### ✅ Tareas Completadas
+#### ✅ Tasks Completed
 - **Optimization Attempts**:
-  - Introducidos spot instances y auto-shutdown para reducir costos, pero causaron inestabilidad (reinstancias automáticas).
-  - Simplificado `user_data` eliminando git clone, confiando en S3 sync.
+  - Introduced spot instances and auto-shutdown to reduce costs, but caused instability (automatic reinstances).
+  - Simplified `user_data` by removing git clone, relying on S3 sync.
 - **Security Enhancements**:
-  - Ajustado IAM role `ec2_s3_read_role` para permisos mínimos (`s3:Get*`, `s3:List*`).
-  - Intentado restringir SSH a IP específica, pero revertido a `0.0.0.0/0` temporalmente.
+  - Adjusted IAM role `ec2_s3_read_role` for minimal permissions (`s3:Get*`, `s3:List*`).
+  - Attempted to restrict SSH to a specific IP, but reverted to `0.0.0.0/0` temporarily.
 - **Scalability Exploration**:
-  - Considerada Lambda, pero pospuesta por complejidad.
-  - Revertido a configuración básica tras fallos (e.g., AMI inválida, sync errores).
+  - Considered Lambda, but postponed due to complexity.
+  - Reverted to basic configuration after failures (e.g., invalid AMI, sync errors).
 
-#### 📝 Notas
-- **Costo**: Manteniendo Free Tier; eliminados snapshots manualmente, evitado EBS/CloudWatch.
+#### 📝 Notes
+- **Cost**: Maintained within Free Tier; manually removed snapshots, avoided EBS/CloudWatch.
 - **Debugging Highlights**:
-  - Corregido `TypeError: use_container_width` eliminándolo de `app.py`.
-  - Resuelto PATH de Streamlit con `export PATH=$PATH:~/.local/bin`.
-  - Ajustado sync manual en EC2 tras fallo de `user_data`.
+  - Fixed `TypeError: use_container_width` by removing it from `app.py`.
+  - Resolved Streamlit PATH with `export PATH=$PATH:~/.local/bin`.
+  - Adjusted manual sync in EC2 after `user_data` failure.
 
 #### 🚨 Challenges & Solutions
 | **Challenge**                  | **Solution**                                                                 |
 |--------------------------------|-----------------------------------------------------------------------------|
-| Spot Instances Instability     | Revertido a instancia on-demand t2.micro por estabilidad.                   |
-| Auto-shutdown Failure          | Eliminado script de auto-shutdown para mantener web activa.                 |
-| S3 Sync Failure in user_data   | Sincronización manual vía SSH y actualización de `user_data`.               |
-| Streamlit Installation Error   | Forzado reinstalación con `pip3 install --force-reinstall` y PATH correcto. |
-| Host Key Changed               | Eliminada clave antigua con `ssh-keygen -R`.                                |
+| Spot Instances Instability     | Reverted to on-demand t2.micro instance for stability.                      |
+| Auto-shutdown Failure          | Removed auto-shutdown script to keep web active.                            |
+| S3 Sync Failure in user_data   | Performed manual synchronization via SSH and updated `user_data`.           |
+| Streamlit Installation Error   | Forced reinstallation with `pip3 install --force-reinstall` and correct PATH.|
+| Host Key Changed               | Removed old key with `ssh-keygen -R`.                                       |
 
 #### Current Status
-- 🟢 **Optimized Deployment**: Aplicación funcional en `18.198.181.6:8501` con S3 sync y base de datos local.
-- Revertido a enfoque básico tras optimizaciones fallidas.
+- 🟢 **Optimized Deployment**: Application functional at `18.198.181.6:8501` with S3 sync and local database.
+- Reverted to basic approach after failed optimizations.
 
-#### 🔜 Next Steps
-- Seguridad: Restringir SSH a IP específica.
-- Escalabilidad: Explorar Lambda en Día 9.
-- Documentación: Actualizar README con lecciones aprendidas.
+
+---
 
 #### Day 8 (Monday, July 14, 2025)
 🔜 **Planned Tasks**:
@@ -586,6 +584,7 @@ Este proyecto implementa una aplicación Streamlit para predecir el estado de fu
 - IAM roles
 - Configure auto-scaling
 - Set up load balancing
+Update: Despliegue de infraestructura core (EC2, S3, IAM). Configurar auto-scaling, load balancing (ALB para HTTPS). Añadir: Registrar dominio en Route 53, configurar DNS (A record al Elastic IP o ALB), y habilitar HTTPS con certificado gratuito (ACM).
 
 #### Day 11 (Thursday, July 17, 2025)
 🔜 **Planned Tasks**:
@@ -593,6 +592,7 @@ Este proyecto implementa una aplicación Streamlit para predecir el estado de fu
 - Test application accessibility
 - Monitor resource utilization
 - Optimize instance sizing
+Update: Verificar despliegue EC2, probar accesibilidad (con nuevo dominio HTTPS), monitoreo de recursos (CloudWatch), y optimización de instancia.
 
 #### Day 12 (Friday, July 18, 2025)
 🔜 **Planned Tasks**:
