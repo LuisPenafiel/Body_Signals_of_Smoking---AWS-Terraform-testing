@@ -1,5 +1,6 @@
 import pytest
 from unittest.mock import Mock
+from typing import Any
 
 @pytest.fixture
 def mock_model():

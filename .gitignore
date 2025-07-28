@@ -24,3 +24,5 @@ data/smoking_db.sqlite
 # Ignorar otros archivos generados o sensibles
 *.log
 *.pyc
+.coverage
+.pytest_cache
