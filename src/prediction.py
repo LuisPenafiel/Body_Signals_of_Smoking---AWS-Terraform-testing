@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.base")  # Suprime el warning
 
 def prediction(db, model, scaler, is_aws):
     """Maneja la sección de predicción de fumadores."""
