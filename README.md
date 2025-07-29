@@ -3,6 +3,8 @@
 ## Screenshots
 - [Images of the app on EC2 (https://smoking-signals.wiki/), S3 bucket, terraform apply output]. # 🚨🚨🚨HTTPS current, Updated and Running🚨🚨🚨
 
+      - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 This project predicts smoking habits using biomedical health markers, leveraging a Random Forest model and an interactive Streamlit interface, deployed on AWS using Infrastructure as Code (IaC) with Terraform.
 
 ## Deployment on AWS with Terraform
