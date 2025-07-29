@@ -1,6 +1,7 @@
 # Body Signals of Smoking on AWS with Terraform 🚨🚨🚨🚧🚧🚧(This project is currently under development) 
 ## Follow progress below and follow "Body Signals of Smoking Project ---- AWS 2.0 Re-do profi"🚧🚧🚧🚨🚨🚨
-
+## Screenshots
+- [Images of the app on EC2 (https://smoking-signals.wiki/), S3 bucket, terraform apply output]. # 🚨🚨🚨HTTPS current, Updated and Running🚨🚨🚨
 
 This project predicts smoking habits using biomedical health markers, leveraging a Random Forest model and an interactive Streamlit interface, deployed on AWS using Infrastructure as Code (IaC) with Terraform.
 
