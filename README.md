@@ -26,7 +26,7 @@ This project predicts smoking habits using biomedical health markers, leveraging
 4. Connect to EC2, install dependencies, and run `streamlit run src/app.py --server.port 80 --server.address 0.0.0.0`.
 
 ## Screenshots
-- [Images of the app on EC2 (https://smoking-signals.wiki/), S3 bucket, terraform apply output]. # 🚨🚨🚨HTTPS current, Updated and Running🚨🚨🚨
+- [Images of the app on EC2 (https://smoking-signals.wiki/), S3 bucket, terraform apply output].  🚨🚨🚨HTTPS current, Updated and Running🚨🚨🚨
 
 ## Improvements
 1. Needs to improve the security with https://
