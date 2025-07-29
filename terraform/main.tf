@@ -267,7 +267,7 @@ resource "aws_lb_listener" "smoking_https" {
 }
 
 resource "aws_acm_certificate" "smoking_cert" {
-  domain_name       = "smoking-body-signals.luispenafiel.com"  # Reemplaza con tu dominio
+  domain_name       = "smoking-signals.wiki"  # Actualizado al dominio registrado
   validation_method = "DNS"
 
   tags = {
@@ -281,7 +281,7 @@ resource "aws_acm_certificate" "smoking_cert" {
 }
 
 data "aws_route53_zone" "existing" {
-  name = "luispenafiel.com."  # Reemplaza con tu dominio base, incluye el punto
+  name = "smoking-signals.wiki."  # Actualizado al dominio registrado
 }
 
 resource "aws_route53_record" "smoking_cert_validation" {
@@ -306,13 +306,13 @@ resource "aws_acm_certificate_validation" "smoking_cert_validation" {
   validation_record_fqdns = [for record in aws_route53_record.smoking_cert_validation : record.fqdn]
 
   timeouts {
-    create = "60m"  # Increased timeout as per DeepSeek recommendation
+    create = "90m"  # Aumentado para dar tiempo a la propagación DNS
   }
 }
 
 resource "aws_route53_record" "smoking_a" {
   zone_id = data.aws_route53_zone.existing.zone_id
-  name    = "smoking-body-signals.luispenafiel.com"  # Reemplaza con tu subdomain
+  name    = "smoking-signals.wiki"  # Actualizado al dominio registrado
   type    = "A"
 
   alias {
