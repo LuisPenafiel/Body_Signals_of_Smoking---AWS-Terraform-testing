@@ -663,15 +663,57 @@ Este proyecto implementa una aplicación Streamlit para predecir el estado de fu
 - 🟢 **Tests Passing**: All 9 integration/unit tests successful (82% coverage)  
 - ✅ **Ready for Day 10**: Infrastructure deployment  
 
-#### Day 10 (Wednesday, July 16, 2025)
-🔜 **Planned Tasks**:
-- Deploy core infrastructure:
-- EC2 instances
-- S3 buckets
-- IAM roles
-- Configure auto-scaling
-- Set up load balancing
-Update: Despliegue de infraestructura core (EC2, S3, IAM). Configurar auto-scaling, load balancing (ALB para HTTPS). Añadir: Registrar dominio en Route 53, configurar DNS (A record al Elastic IP o ALB), y habilitar HTTPS con certificado gratuito (ACM).
+### Day 10: Infrastructure Deployment with Terraform and Custom Domain  
+**Date:** Tuesday, July 29, 2025  
+**Status:** ✅ Completed  
+
+#### 🔜 Planned Tasks (Initial)  
+- Deploy core infrastructure:  
+  - EC2 instances  
+  - S3 buckets  
+  - IAM roles  
+- Configure auto-scaling  
+- Set up load balancing  
+- Update: Deploy core infrastructure (EC2, S3, IAM). Configure auto-scaling, load balancing (ALB for HTTPS). Add: Register domain in Route 53, configure DNS (A record to Elastic IP or ALB), and enable HTTPS with a free certificate (ACM).  
+
+#### ✅ Tasks Completed  
+- **Core Infrastructure Deployed**:  
+  - Provisioned EC2 instances via Launch Template with Ubuntu 22.04 AMI  
+  - Created S3 bucket (`smoking-body-signals-data-dev`) for data storage  
+  - Configured IAM roles and instance profile for S3 access  
+- **Auto-Scaling Configured**:  
+  - Set up Auto Scaling Group (`smoking-asg`) with 1 min, 2 max instances  
+  - Added scaling policies (`smoking-scale-out`, `smoking-scale-in`) for CPU thresholds  
+- **Load Balancing Set Up**:  
+  - Deployed Application Load Balancer (`smoking-alb`) with HTTP (redirect to HTTPS) and HTTPS listeners  
+  - Integrated with Target Group (`smoking-tg`) on port 8501 for Streamlit  
+- **Domain Registration and DNS Configuration**:  
+  - Registered `smoking-signals.wiki` with Freenom (free domain)  
+  - Created a new hosted zone in Route 53 and delegated via nameservers  
+  - Configured A record to point to ALB  
+- **HTTPS Enabled with ACM**:  
+  - Obtained and validated a free SSL/TLS certificate for `smoking-signals.wiki` using ACM  
+  - Successfully accessed application via `https://smoking-signals.wiki`  
+
+#### 📝 Notes  
+- Application requires JavaScript enabled in the browser (standard for Streamlit)  
+- ALB DNS Name: `smoking-alb-267771264.eu-central-1.elb.amazonaws.com`  
+- EC2 Public IP: `18.198.181.6`  
+- Old zone `luispenafiel.com` (Z0404789UETDKXEXIZIH) remains in Route 53 with obsolete records; can be deleted manually if not needed  
+- Terraform Cloud apply completed with a 90-minute timeout for ACM validation  
+
+#### 🚨 Challenges & Solutions  
+| **Challenge**                  | **Solution**                                                                 |
+|--------------------------------|-----------------------------------------------------------------------------|
+| `context canceled` in ACM validation | Increased timeout to 90 minutes and waited for DNS propagation (1-2 hours) |
+| `HostedZoneNotEmpty` error     | Switched to `data.aws_route53_zone.existing` and cleaned state with `terraform state rm` (not needed as resource was absent) |
+| DNS propagation delay          | Verified nameservers with `nslookup` and proceeded after partial propagation |
+| Streamlit JavaScript warning   | Noted as expected behavior; no action required  
+
+#### Current Status  
+- 🟢 **Infrastructure Deployed**: All resources (ASG, ALB, S3, IAM, Route 53, ACM) operational  
+- ✅ **Application Accessible**: `https://smoking-signals.wiki` live with HTTPS  
+- ✅ **Ready for Day 11**: Application testing and optimization
 
 #### Day 11 (Thursday, July 17, 2025)
 🔜 **Planned Tasks**:
@@ -701,7 +743,7 @@ Update: Verificar despliegue EC2, probar accesibilidad (con nuevo dominio HTTPS)
 - Document all endpoints
 - Prepare user guide
 - Complete project documentation
-Update: Add optional extras like CloudWatch for monitoring (logs and alarms), if Free Tier allows.
+
 
 ### Project Setup
 - Prerequisites
