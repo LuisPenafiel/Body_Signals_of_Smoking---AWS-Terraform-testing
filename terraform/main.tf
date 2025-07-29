@@ -55,14 +55,14 @@ resource "aws_security_group" "smoking_sg" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # For HTTPS
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Abierto temporalmente
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -114,13 +114,20 @@ resource "aws_key_pair" "smoking_key" {
   public_key = var.ec2_public_key
 }
 
-resource "aws_launch_configuration" "smoking_lc" {
-  name_prefix          = "smoking-lc-"
-  image_id             = "ami-0dc33c9c954b3f073" # Confirmada como válida por tu comando
-  instance_type        = var.instance_type
-  key_name             = aws_key_pair.smoking_key.key_name
-  security_groups      = [aws_security_group.smoking_sg.id]
-  iam_instance_profile = aws_iam_instance_profile.ec2_s3_profile.name
+resource "aws_launch_template" "smoking_lt" {
+  name_prefix   = "smoking-lt-"
+  image_id      = "ami-0dc33c9c954b3f073"  # Verified Ubuntu 22.04 LTS
+  instance_type = var.instance_type
+  key_name      = aws_key_pair.smoking_key.key_name
+
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.smoking_sg.id]
+  }
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_s3_profile.name
+  }
 
   user_data = base64encode(<<-EOF
     #!/bin/bash
@@ -158,8 +165,11 @@ resource "aws_launch_configuration" "smoking_lc" {
 }
 
 resource "aws_autoscaling_group" "smoking_asg" {
-  name                 = "smoking-asg"
-  launch_configuration = aws_launch_configuration.smoking_lc.name
+  name                = "smoking-asg"
+  launch_template {
+    id      = aws_launch_template.smoking_lt.id
+    version = "$Latest"
+  }
   min_size             = 1
   max_size             = 2
   desired_capacity     = 1
@@ -191,38 +201,6 @@ resource "aws_autoscaling_policy" "smoking_scale_in" {
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
   autoscaling_group_name = aws_autoscaling_group.smoking_asg.name
-}
-
-resource "aws_cloudwatch_metric_alarm" "high_cpu" {
-  alarm_name          = "high-cpu-alarm"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 60
-  alarm_description   = "Scale out if CPU > 60%"
-  alarm_actions       = [aws_autoscaling_policy.smoking_scale_out.arn]
-  dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.smoking_asg.name
-  }
-}
-
-resource "aws_cloudwatch_metric_alarm" "low_cpu" {
-  alarm_name          = "low-cpu-alarm"
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 30
-  alarm_description   = "Scale in if CPU < 30%"
-  alarm_actions       = [aws_autoscaling_policy.smoking_scale_in.arn]
-  dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.smoking_asg.name
-  }
 }
 
 resource "aws_lb" "smoking_alb" {
@@ -280,7 +258,7 @@ resource "aws_lb_listener" "smoking_https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate.smoking_cert.arn
+  certificate_arn   = aws_acm_certificate_validation.smoking_cert_validation.certificate_arn
 
   default_action {
     type             = "forward"
@@ -289,7 +267,7 @@ resource "aws_lb_listener" "smoking_https" {
 }
 
 resource "aws_acm_certificate" "smoking_cert" {
-  domain_name       = "smoking-body-signals.luispenafiel.com" # Reemplaza con tu dominio
+  domain_name       = "smoking-body-signals.luispenafiel.com"  # Reemplaza con tu dominio
   validation_method = "DNS"
 
   tags = {
@@ -302,12 +280,8 @@ resource "aws_acm_certificate" "smoking_cert" {
   }
 }
 
-resource "aws_route53_zone" "smoking_zone" {
-  name = "luispenafiel.com" # Reemplaza con tu dominio base
-
-  tags = {
-    Environment = var.env
-  }
+data "aws_route53_zone" "existing" {
+  name = "luispenafiel.com."  # Reemplaza con tu dominio base, incluye el punto
 }
 
 resource "aws_route53_record" "smoking_cert_validation" {
@@ -324,17 +298,21 @@ resource "aws_route53_record" "smoking_cert_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.smoking_zone.zone_id
+  zone_id         = data.aws_route53_zone.existing.zone_id
 }
 
 resource "aws_acm_certificate_validation" "smoking_cert_validation" {
   certificate_arn         = aws_acm_certificate.smoking_cert.arn
   validation_record_fqdns = [for record in aws_route53_record.smoking_cert_validation : record.fqdn]
+
+  timeouts {
+    create = "60m"  # Increased timeout as per DeepSeek recommendation
+  }
 }
 
 resource "aws_route53_record" "smoking_a" {
-  zone_id = aws_route53_zone.smoking_zone.zone_id
-  name    = "smoking-body-signals.luispenafiel.com" # Reemplaza con tu subdomain
+  zone_id = data.aws_route53_zone.existing.zone_id
+  name    = "smoking-body-signals.luispenafiel.com"  # Reemplaza con tu subdomain
   type    = "A"
 
   alias {
@@ -345,7 +323,7 @@ resource "aws_route53_record" "smoking_a" {
 }
 
 resource "aws_eip" "smoking_eip" {
-  domain = "vpc"
+  domain   = "vpc"
   tags = {
     Name        = "SmokingAppEIP"
     Environment = var.env
@@ -375,8 +353,8 @@ resource "aws_iam_role" "ec2_s3_role" {
 }
 
 resource "aws_iam_role_policy" "ec2_s3_extended" {
-  name = "ec2_s3_extended_policy"
-  role = aws_iam_role.ec2_s3_role.name
+  name   = "ec2_s3_extended_policy"
+  role   = aws_iam_role.ec2_s3_role.name
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
