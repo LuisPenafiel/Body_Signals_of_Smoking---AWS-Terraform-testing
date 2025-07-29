@@ -701,7 +701,7 @@ Update: Verificar despliegue EC2, probar accesibilidad (con nuevo dominio HTTPS)
 - Document all endpoints
 - Prepare user guide
 - Complete project documentation
-
+Update: Add optional extras like CloudWatch for monitoring (logs and alarms), if Free Tier allows.
 
 ### Project Setup
 - Prerequisites
