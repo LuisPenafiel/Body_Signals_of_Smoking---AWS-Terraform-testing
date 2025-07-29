@@ -52,10 +52,17 @@ resource "aws_security_group" "smoking_sg" {
   }
 
   ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # For HTTPS
+  }
+
+  ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Abierto temporalmente, si se necesita mas seguridad, tenemos un script para buscar y update a AWS
+    cidr_blocks = ["0.0.0.0/0"] # Abierto temporalmente
   }
 
   ingress {
@@ -109,48 +116,40 @@ resource "aws_key_pair" "smoking_key" {
 
 resource "aws_launch_configuration" "smoking_lc" {
   name_prefix          = "smoking-lc-"
-  image_id             = "ami-0dc33c9c954b3f073" # Ubuntu 22.04 LTS, actualizado 2025-07-12
+  image_id             = "ami-0dc33c9c954b3f073" # Confirmada como válida por tu comando
   instance_type        = var.instance_type
   key_name             = aws_key_pair.smoking_key.key_name
   security_groups      = [aws_security_group.smoking_sg.id]
   iam_instance_profile = aws_iam_instance_profile.ec2_s3_profile.name
 
-  user_data = base64encode(<<EOF
-#!/bin/bash
-set -e  # Exit on error
-LOG_FILE=/home/ubuntu/setup.log
-echo "Starting setup at $(date)" > $LOG_FILE 2>&1
-sudo apt update -y >> $LOG_FILE 2>&1
-sudo apt install -y python3-pip git awscli net-tools >> $LOG_FILE 2>&1
-pip3 install --upgrade pip >> $LOG_FILE 2>&1
-cd /home/ubuntu
-mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
-cd Body_Signals_of_Smoking---AWS-Terraform-testing/src
-aws s3 sync s3://smoking-body-signals-data-dev/src/ . --quiet >> $LOG_FILE 2>&1
-if [ $? -ne 0 ]; then
-  echo "S3 sync failed at $(date)" >> $LOG_FILE
-  exit 1
-fi
-pip3 install -r requirements.txt --no-cache-dir >> $LOG_FILE 2>&1 || {
-  echo "Pip install failed at $(date)" >> $LOG_FILE
-  exit 1
-}
-export AWS_REGION=eu-central-1
-export AWS_DEFAULT_REGION=eu-central-1
-# Start Streamlit with health check
-nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
-sleep 5
-if pgrep -f streamlit > /dev/null; then
-  PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-  echo "Streamlit started at $(date) with PID $(pgrep -f streamlit) at http://$PUBLIC_IP:8501" >> $LOG_FILE
-else
-  echo "Streamlit failed to start at $(date). Check logs." >> $LOG_FILE
-  cat /home/ubuntu/streamlit.log >> $LOG_FILE
-  exit 1
-fi
-netstat -tuln >> /home/ubuntu/network_check.log 2>&1
-echo "Setup complete at $(date)" >> $LOG_FILE
-EOF
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    set -e
+    LOG_FILE="/home/ubuntu/setup.log"
+    echo "Starting setup at $(date)" > "$LOG_FILE" 2>&1
+    sudo apt update -y >> "$LOG_FILE" 2>&1 || { echo "apt update failed"; exit 1; }
+    sudo apt install -y python3-pip git awscli net-tools >> "$LOG_FILE" 2>&1 || { echo "apt install failed"; exit 1; }
+    pip3 install --upgrade pip >> "$LOG_FILE" 2>&1 || { echo "pip upgrade failed"; exit 1; }
+    cd /home/ubuntu || { echo "cd failed"; exit 1; }
+    mkdir -p Body_Signals_of_Smoking---AWS-Terraform-testing/src
+    cd Body_Signals_of_Smoking---AWS-Terraform-testing/src || { echo "cd src failed"; exit 1; }
+    aws s3 sync s3://smoking-body-signals-data-dev/src/ . --quiet >> "$LOG_FILE" 2>&1 || { echo "S3 sync failed"; exit 1; }
+    pip3 install -r requirements.txt --no-cache-dir >> "$LOG_FILE" 2>&1 || { echo "pip install failed"; exit 1; }
+    export AWS_REGION=eu-central-1
+    export AWS_DEFAULT_REGION=eu-central-1
+    nohup streamlit run app.py --server.port 8501 --server.address 0.0.0.0 --server.headless true --logger.level debug > /home/ubuntu/streamlit.log 2>&1 &
+    sleep 5
+    if pgrep -f streamlit > /dev/null; then
+      PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+      echo "Streamlit started at $(date) with PID $(pgrep -f streamlit) at http://$PUBLIC_IP:8501" >> "$LOG_FILE"
+    else
+      echo "Streamlit failed to start at $(date). Check logs." >> "$LOG_FILE"
+      cat /home/ubuntu/streamlit.log >> "$LOG_FILE"
+      exit 1
+    fi
+    netstat -tuln >> /home/ubuntu/network_check.log 2>&1
+    echo "Setup complete at $(date)" >> "$LOG_FILE"
+  EOF
   )
 
   lifecycle {
@@ -281,7 +280,7 @@ resource "aws_lb_listener" "smoking_https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate_validation.smoking_cert_validation.certificate_arn
+  certificate_arn   = aws_acm_certificate.smoking_cert.arn
 
   default_action {
     type             = "forward"
