@@ -721,7 +721,7 @@ Este proyecto implementa una aplicación Streamlit para predecir el estado de fu
 - Test application accessibility
 - Monitor resource utilization
 - Optimize instance sizing
-Update: Verificar despliegue EC2, probar accesibilidad (con nuevo dominio HTTPS), monitoreo de recursos (CloudWatch), y optimización de instancia.
+
 
 #### Day 12 (Friday, July 18, 2025)
 🔜 **Planned Tasks**:
