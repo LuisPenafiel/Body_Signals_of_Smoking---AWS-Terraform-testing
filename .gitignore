@@ -26,3 +26,4 @@ data/smoking_db.sqlite
 *.pyc
 .coverage
 .pytest_cache
+.dockerignore

@@ -720,9 +720,12 @@ Este proyecto implementa una aplicación Streamlit para predecir el estado de fu
 - ✅ **Application Accessible**: `https://smoking-signals.wiki` live with HTTPS  
 - ✅ **Ready for Day 11**: Application testing and optimization
 
+# Summer Holidays
+
 #### Day 11 (Thursday, July 17, 2025)
 🔜 **Planned Tasks**:
 - Verify EC2 deployment
+- Use Docker to show Container skils
 - Test application accessibility
 - Monitor resource utilization
 - Optimize instance sizing
